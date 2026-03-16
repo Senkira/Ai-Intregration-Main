@@ -1,0 +1,41 @@
+{
+  "name": "@oatrepos/mcp-solution-architect",
+  "version": "1.0.0",
+  "description": "MCP Server for AI Solution Architect - analyzing requirements and designing solutions",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "mcp-solution-architect": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/index.js",
+    "test": "node dist/index.js",
+    "prepare": "npm run build"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "keywords": [
+    "mcp",
+    "solution-architect",
+    "ai",
+    "code-analysis"
+  ],
+  "author": "OAT Team",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^20.11.0",
+    "typescript": "^5.3.3"
+  }
+}
