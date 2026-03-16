@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- §10.4 — Enable XML documentation for OpenAPI -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+  </PropertyGroup>
+
+  <!-- §19.1 — Pin exact NuGet versions -->
+  <ItemGroup>
+    <!-- §3.1, §3.29 — Dapper (Micro-ORM เดียวที่อนุญาต) -->
+    <PackageReference Include="Dapper" Version="2.1.66" />
+    <!-- §3.3 — SQL Server Connection -->
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.1" />
+    <!-- §15.1 — FluentValidation -->
+    <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.0" />
+    <!-- §7.1 — JWT Authentication -->
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.0" />
+    <!-- §13.6 — API Versioning -->
+    <PackageReference Include="Asp.Versioning.Mvc" Version="8.1.0" />
+    <!-- §18.4 — HTTP Resilience (Polly v8+) -->
+    <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="9.4.0" />
+    <!-- §25.3 — Feature Management -->
+    <PackageReference Include="Microsoft.FeatureManagement.AspNetCore" Version="4.0.0" />
+  </ItemGroup>
+
+</Project>

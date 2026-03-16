@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ai-Role Pipeline — Step 1-6 Framework Reference</title>
+<style>
+  :root {
+    --bg: #0d1117; --bg2: #161b22; --bg3: #21262d;
+    --border: #30363d; --text: #e6edf3; --muted: #8b949e; --accent: #58a6ff;
+    --c-blue: #2c6a95; --c-purple: #7e68e5; --c-yellow: #ffb024;
+    --c-pink: #f75496; --c-green: #52b166; --c-brown: #976e4b;
+    --c-red: #e94560; --c-teal: #079992;
+    --r-arch: #3fb950; --r-qa: #d29922; --r-dev: #8b949e;
+    --r-devqc: #56d364; --r-sec: #e94560; --r-dba: #58a6ff; --r-std: #a371f7;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans Thai', sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.6; font-size: 14px;
+  }
+
+  /* ── TOP BAR ── */
+  .topbar {
+    background: var(--bg2); border-bottom: 1px solid var(--border);
+    padding: 12px 24px; display: flex; align-items: center; gap: 16px;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .topbar h1 {
+    font-size: 18px; font-weight: 800;
+    background: linear-gradient(135deg, var(--accent), var(--c-purple));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .topbar .subtitle { font-size: 12px; color: var(--muted); line-height: 1.5; }
+  .legend { display: flex; gap: 8px; margin-left: auto; flex-wrap: wrap; align-items: center; }
+  .legend-title { font-size: 10px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+  .legend-item { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--muted); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ── PHASE BAR ── */
+  .phase-bar {
+    display: flex; overflow-x: auto; padding: 8px 24px; gap: 8px;
+    background: var(--bg); border-bottom: 1px solid var(--border);
+    position: sticky; top: 52px; z-index: 99; align-items: center;
+  }
+  .phase-label {
+    padding: 4px 14px; border-radius: 20px; font-size: 11px; font-weight: 700;
+    white-space: nowrap; flex-shrink: 0; border: 1px solid;
+  }
+  .phase-meta   { background: #2c6a9522; color: var(--c-blue); border-color: var(--c-blue); }
+  .phase-req    { background: #7e68e522; color: var(--c-purple); border-color: var(--c-purple); }
+  .phase-del    { background: #ffb02422; color: var(--c-yellow); border-color: var(--c-yellow); }
+  .phase-impl   { background: #52b16622; color: var(--c-green); border-color: var(--c-green); }
+  .phase-maint  { background: #07999222; color: var(--c-teal); border-color: var(--c-teal); }
+  .phase-assess { background: #2c6a9522; color: var(--c-blue); border-color: var(--c-blue); }
+  .phase-note { font-size: 10px; color: var(--muted); white-space: nowrap; }
+
+  /* ── KANBAN ── */
+  .kanban {
+    display: flex; overflow-x: auto; padding: 20px 24px 40px; gap: 12px;
+    min-height: calc(100vh - 110px); align-items: flex-start;
+    cursor: grab; user-select: none;
+  }
+  .kanban:active { cursor: grabbing; }
+  .kanban.dragging { cursor: grabbing; }
+  .kanban.dragging * { pointer-events: none; }
+
+  /* ── PHASE SEPARATOR ── */
+  .phase-sep {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: flex-start; padding-top: 16px; flex-shrink: 0;
+  }
+  .phase-sep .sep-line { width: 2px; height: 60px; margin: 6px 0; }
+  .phase-sep .sep-label {
+    writing-mode: vertical-rl; font-size: 10px; font-weight: 800;
+    letter-spacing: 2px; text-transform: uppercase; padding: 8px 0;
+  }
+
+  /* ── COLUMN ── */
+  .col {
+    min-width: 260px; max-width: 260px; background: var(--bg2);
+    border: 1px solid var(--border); border-radius: 10px; flex-shrink: 0;
+    display: flex; flex-direction: column; max-height: calc(100vh - 130px);
+  }
+  .col.wide { min-width: 380px; max-width: 380px; }
+  .col.dim { opacity: 0.45; }
+  .col-header {
+    padding: 10px 14px; border-radius: 10px 10px 0 0;
+    font-size: 13px; font-weight: 700; color: #fff;
+    display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+  }
+  .col-body { padding: 8px; overflow-y: auto; flex: 1; }
+
+  .col-empty {
+    padding: 16px 12px; text-align: center; font-size: 11px; color: var(--muted);
+    font-style: italic; line-height: 1.6;
+  }
+
+  /* ── CHECKPOINT ── */
+  .checkpoint {
+    background: linear-gradient(135deg, #e9456033, #d2992233);
+    border: 1px dashed var(--c-red); border-radius: 6px;
+    padding: 6px 10px; margin: 6px 0; font-size: 11px;
+    font-weight: 700; color: var(--c-red); text-align: center;
+  }
+  .checkpoint.green {
+    background: linear-gradient(135deg, #52b16633, #07999233);
+    border-color: var(--c-green); color: var(--c-green);
+  }
+
+  /* ── SUB HEADER ── */
+  .sub-header {
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--muted); padding: 8px 4px 4px;
+    border-bottom: 1px solid var(--border); margin-bottom: 6px;
+  }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--bg3); border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 12px; margin-bottom: 8px;
+    transition: border-color .15s, transform .1s; cursor: default;
+  }
+  .card:hover { border-color: var(--accent); transform: translateY(-1px); }
+  .card-title { font-size: 12.5px; font-weight: 600; margin-bottom: 4px; line-height: 1.5; }
+  .card-body { font-size: 11px; color: var(--muted); line-height: 1.6; }
+  .card-body b { color: var(--text); font-weight: 600; }
+  .card-io {
+    font-size: 10px; margin-top: 6px; padding-top: 5px;
+    border-top: 1px solid var(--border); color: var(--muted); line-height: 1.7;
+  }
+  .io-in  { color: #79c0ff; }
+  .io-out { color: #56d364; }
+  .card-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+
+  .card.step-card { border-left: 3px solid var(--accent); }
+
+  /* ── STEP NUMBER ── */
+  .sn {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 20px; height: 20px; border-radius: 50%;
+    font-size: 10px; font-weight: 800; color: #fff; margin-right: 6px;
+    flex-shrink: 0; vertical-align: middle;
+  }
+
+  /* ── ROLE PILLS (Ai Roles only) ── */
+  .role {
+    display: inline-flex; align-items: center; gap: 3px;
+    padding: 1px 8px; border-radius: 12px; font-size: 10px;
+    font-weight: 700; border: 1px solid; white-space: nowrap;
+  }
+  .role-arch  { color: var(--r-arch); border-color: var(--r-arch); background: #3fb95018; }
+  .role-qa    { color: var(--r-qa);   border-color: var(--r-qa);   background: #d2992218; }
+  .role-dev   { color: var(--r-dev);  border-color: var(--r-dev);  background: #8b949e18; }
+  .role-devqc { color: var(--r-devqc);border-color: var(--r-devqc);background: #56d36418; }
+  .role-sec   { color: var(--r-sec);  border-color: var(--r-sec);  background: #e9456018; }
+  .role-dba   { color: var(--r-dba);  border-color: var(--r-dba);  background: #58a6ff18; }
+  .role-std   { color: var(--r-std);  border-color: var(--r-std);  background: #a371f718; }
+
+  .tag { display: inline-block; padding: 0px 6px; border-radius: 4px; font-size: 10px; font-weight: 700; }
+  .tag-gate { background: #e9456033; color: #ff6b82; }
+  .tag-cond { background: #a371f733; color: #c0a0ff; }
+  .tag-always { background: #56d36433; color: #7ee787; }
+
+  code {
+    background: #ffffff12; padding: 1px 5px; border-radius: 3px;
+    font-size: 10px; color: var(--accent); font-family: 'Consolas', monospace;
+  }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 5px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  .page-footer {
+    text-align: center; padding: 16px; font-size: 11px; color: var(--muted);
+    border-top: 1px solid var(--border); line-height: 1.7;
+  }
+</style>
+</head>
+<body>
+
+<!-- ══ TOP BAR ══ -->
+<div class="topbar">
+  <div>
+    <h1>🤖 Ai-Role Pipeline — Step 1-6 Framework Reference</h1>
+    <div class="subtitle">
+      Ai Role 7 ตัว · แกนหลัก = <b>Develop (Step 1-6)</b> · Arch/DBA/Sec ทำงานข้าม column ด้วย<br/>
+      Column ที่จาง = งานคนล้วน · Column ที่สว่าง = มี Ai Role ช่วย
+    </div>
+  </div>
+  <div class="legend">
+    <div class="legend-title">Ai Roles (7):</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--r-arch)"></div>01 Architect</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--r-qa)"></div>02 Task QA</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--r-dev)"></div>03 Developer</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--r-devqc)"></div>04 Dev QC</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--r-sec)"></div>Sec</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--r-dba)"></div>DBA</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--r-std)"></div>Std</div>
+  </div>
+</div>
+
+<div class="phase-bar">
+  <span class="phase-label phase-meta">⚙️ Meta</span>
+  <span class="phase-label phase-req">🟣 (R) Requirement</span>
+  <span class="phase-label phase-del">🟡 (D) Delivery</span>
+  <span class="phase-note">← บาง col มี 🏗️Arch / 🗄️DBA / 🔐Sec</span>
+  <span style="margin: 0 8px; color: var(--c-green); font-size: 16px; font-weight: 900;">│</span>
+  <span class="phase-label" style="background:var(--c-green); color:#fff; border-color:var(--c-green);">⚡ Develop — Ai-Role Pipeline Step 1-6</span>
+  <span style="margin: 0 8px; color: var(--c-green); font-size: 16px; font-weight: 900;">│</span>
+  <span class="phase-label phase-del">🟡 UAT</span>
+  <span class="phase-label phase-impl">🟢 (I) Go Live</span>
+  <span class="phase-label phase-maint">🔵 (M) Post</span>
+  <span class="phase-label phase-assess">📊 (A) Assess</span>
+  <span class="phase-note">← บาง col มี 🏗️Arch / 🗄️DBA / 🔐Sec</span>
+</div>
+
+<!-- ══ KANBAN ══ -->
+<div class="kanban">
+
+  <!-- ═══ META — ว่าง ═══ -->
+  <div class="col dim"><div class="col-header" style="background:var(--c-blue);">Pre-approve</div><div class="col-body"><div class="col-empty">Board management<br/>ไม่มี Ai Role</div></div></div>
+  <div class="col dim"><div class="col-header" style="background:linear-gradient(to right,#fa4529,#f75496,#ffb024,#62c276,#44bffc);">Document</div><div class="col-body"><div class="col-empty">Board management<br/>ไม่มี Ai Role</div></div></div>
+  <div class="col dim"><div class="col-header" style="background:var(--c-blue);">Color Status</div><div class="col-body"><div class="col-empty">Board management<br/>ไม่มี Ai Role</div></div></div>
+  <div class="col dim"><div class="col-header" style="background:var(--c-blue);">Delay Code</div><div class="col-body"><div class="col-empty">Board management<br/>ไม่มี Ai Role</div></div></div>
+  <div class="col dim"><div class="col-header" style="background:var(--c-blue);">Status Project</div><div class="col-body"><div class="col-empty">Board management<br/>ไม่มี Ai Role</div></div></div>
+
+  <!-- ═══ (R) REQUIREMENT — งานคน ═══ -->
+  <div class="phase-sep">
+    <div style="font-size:18px;">🟣</div>
+    <div class="sep-line" style="background:var(--c-purple);"></div>
+    <div class="sep-label" style="color:var(--c-purple);">(R)</div>
+  </div>
+
+  <div class="col dim"><div class="col-header" style="background:var(--c-purple);">Business Concept</div><div class="col-body"><div class="col-empty">งานคน<br/>PM + User Owner</div></div></div>
+  <div class="col dim"><div class="col-header" style="background:var(--c-purple);">Business Requirement</div><div class="col-body"><div class="col-empty">งานคน<br/>BA + User + Architect (คน)</div></div></div>
+  <div class="col">
+    <div class="col-header" style="background:var(--c-purple);">Proposal / POC (R)</div>
+    <div class="col-body">
+      <div class="card step-card" style="border-left-color:var(--r-arch);">
+        <div class="card-title">🏗️ Architect AI: ออกแบบ High-level Solution</div>
+        <div class="card-body">วิเคราะห์ Tech stack, integration points, constraint, risk<br/>ระบุ <b>Sec concern</b> เบื้องต้น (Auth? PII?) + <b>DB concern</b> (new schema?)</div>
+        <div class="card-io">
+          <span class="io-in">← BRD (จากคน)</span><br/>
+          <span class="io-out">→ Proposal + Architecture Overview</span>
+        </div>
+        <div class="card-tags"><span class="role role-arch">🏗️ 01 Architect</span></div>
+      </div>
+      <div class="col-empty" style="padding:6px 0;">+ งานคน: PM รวม Cost Estimate · Dev ทำ POC (ถ้าจำเป็น)</div>
+    </div>
+  </div>
+
+  <!-- ═══ (D) DELIVERY — งานคนก่อน Develop ═══ -->
+  <div class="phase-sep">
+    <div style="font-size:18px;">🟡</div>
+    <div class="sep-line" style="background:var(--c-yellow);"></div>
+    <div class="sep-label" style="color:var(--c-yellow);">(D)</div>
+  </div>
+
+  <div class="col dim"><div class="col-header" style="background:var(--c-yellow);color:#000;">Get Scope</div><div class="col-body"><div class="col-empty">งานคน<br/>PM + Architect (คน)</div></div></div>
+  <div class="col dim"><div class="col-header" style="background:var(--c-yellow);color:#000;">Kick off</div><div class="col-body"><div class="col-empty">งานคน<br/>PM + ทีมทั้งหมด</div></div></div>
+  <div class="col dim"><div class="col-header" style="background:var(--c-pink);">Get Req User#1</div><div class="col-body"><div class="col-empty">งานคน<br/>BA + User</div></div></div>
+  <div class="col dim"><div class="col-header" style="background:var(--c-yellow);color:#000;">Pre Steering</div><div class="col-body"><div class="col-empty">งานคน<br/>PM + Architect (คน)</div></div></div>
+  <div class="col wide">
+    <div class="col-header" style="background:var(--c-green);">Assessment (D) — Technical Deep Dive</div>
+    <div class="col-body">
+      <div class="card step-card" style="border-left-color:var(--r-arch);">
+        <div class="card-title">🏗️ Architect AI: Solution Architecture Design</div>
+        <div class="card-body">Component diagram, sequence, integration flow<br/><b>ระบุจุดที่จะติด tag</b> <code>[sec-design]</code> <code>[dba-schema]</code> เมื่อแตก task</div>
+        <div class="card-io"><span class="io-out">→ SAD (Solution Architecture Document)</span></div>
+        <div class="card-tags"><span class="role role-arch">🏗️ 01 Architect</span></div>
+      </div>
+      <div class="card step-card" style="border-left-color:var(--r-dba);">
+        <div class="card-title">🗄️ DBA AI: Database Impact Assessment</div>
+        <div class="card-body">Schema ใหม่ / แก้ table เดิม / migration strategy<br/>เป็น input สำหรับ <b>DBA Pre-check (Step 3)</b></div>
+        <div class="card-io">
+          <span class="io-in">← SAD</span><br/>
+          <span class="io-out">→ DB Impact Report + Draft ERD</span>
+        </div>
+        <div class="card-tags"><span class="role role-dba">🗄️ DBA</span></div>
+      </div>
+      <div class="card step-card" style="border-left-color:var(--r-sec);">
+        <div class="card-title">🔐 Sec AI: Security Impact Assessment</div>
+        <div class="card-body">Auth scheme, PII fields, external system security<br/>เป็น input สำหรับ <b>Sec Pre-check (Step 3)</b></div>
+        <div class="card-io">
+          <span class="io-in">← SAD</span><br/>
+          <span class="io-out">→ Security Impact Report + Auth/PII Strategy Draft</span>
+        </div>
+        <div class="card-tags"><span class="role role-sec">🔐 Sec</span></div>
+      </div>
+      <div class="col-empty" style="padding:6px 0;">+ งานคน: PM + Architect ทำ Effort Estimation</div>
+    </div>
+  </div>
+  <div class="col dim"><div class="col-header" style="background:var(--c-pink);">Get Req User#2</div><div class="col-body"><div class="col-empty">งานคน<br/>BA + User</div></div></div>
+  <div class="col">
+    <div class="col-header" style="background:var(--c-pink);">Get Req User#3 (D)</div>
+    <div class="col-body">
+      <div class="card step-card" style="border-left-color:var(--r-arch);">
+        <div class="card-title">🏗️ Architect AI: Finalize Solution + แตก Task List</div>
+        <div class="card-body">ปรับ SAD ตาม requirement สุดท้าย<br/>→ <b>แตก task list พร้อม tags เบื้องต้น</b></div>
+        <div class="card-io"><span class="io-out">→ Final SAD + Task List (พร้อม tags)</span></div>
+        <div class="card-tags"><span class="role role-arch">🏗️ 01 Architect</span></div>
+      </div>
+      <div class="col-empty" style="padding:6px 0;">+ งานคน: BA ยืนยัน Final Req กับ User</div>
+      <div class="checkpoint">🔒 SCOPE FREEZE — หลังจากนี้ต้อง Change Request</div>
+    </div>
+  </div>
+  <div class="col">
+    <div class="col-header" style="background:var(--c-yellow);color:#000;">Infra Steering (D)</div>
+    <div class="col-body">
+      <div class="card step-card" style="border-left-color:var(--r-dba);">
+        <div class="card-title">🗄️ DBA AI: DB Provisioning Plan</div>
+        <div class="card-body">Database sizing, HA, backup strategy</div>
+        <div class="card-io"><span class="io-in">← DB Impact Report</span></div>
+        <div class="card-tags"><span class="role role-dba">🗄️ DBA</span></div>
+      </div>
+      <div class="card step-card" style="border-left-color:var(--r-sec);">
+        <div class="card-title">🔐 Sec AI: Network Security Requirements</div>
+        <div class="card-body">Firewall rules, TLS cert, external connectivity, Vault</div>
+        <div class="card-tags"><span class="role role-sec">🔐 Sec</span></div>
+      </div>
+      <div class="col-empty" style="padding:6px 0;">+ งานคน: Infra + Architect นำเสนอ Infrastructure Needs</div>
+    </div>
+  </div>
+  <div class="col dim"><div class="col-header" style="background:var(--c-yellow);color:#000;">Steering</div><div class="col-body"><div class="col-empty">งานคน<br/>PM — Final Approval</div></div></div>
+  <div class="col">
+    <div class="col-header" style="background:var(--c-blue);">Prepare Infra (D)</div>
+    <div class="col-body">
+      <div class="card step-card" style="border-left-color:var(--r-dba);">
+        <div class="card-title">🗄️ DBA AI: Create Initial Schema</div>
+        <div class="card-body">DB instances, initial DDL จาก Draft ERD, users/permissions</div>
+        <div class="card-io"><span class="io-in">← DB Impact Report + Draft ERD</span></div>
+        <div class="card-tags"><span class="role role-dba">🗄️ DBA</span></div>
+      </div>
+      <div class="card step-card" style="border-left-color:var(--r-sec);">
+        <div class="card-title">🔐 Sec AI: Configure Security Infra</div>
+        <div class="card-body">Vault secrets, TLS, firewall rules, security scan</div>
+        <div class="card-tags"><span class="role role-sec">🔐 Sec</span></div>
+      </div>
+      <div class="col-empty" style="padding:6px 0;">+ งานคน: Infra setup environments · Dev setup repos + CI/CD</div>
+      <div class="checkpoint green">✅ Environments Ready → เริ่ม Develop</div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════ -->
+  <!-- ═══ DEVELOP — Ai-Role Pipeline Step 1-6 ═══ -->
+  <!-- ════════════════════════════════════════════ -->
+  <div class="phase-sep">
+    <div style="font-size:24px;">⚡</div>
+    <div class="sep-line" style="background:var(--c-green); width: 3px;"></div>
+    <div class="sep-label" style="color:var(--c-green); font-size: 11px;">Ai-Role</div>
+  </div>
+
+  <div class="col wide" style="border-color: var(--c-green); border-width: 2px;">
+    <div class="col-header" style="background: linear-gradient(135deg, var(--c-green), var(--c-teal));">⚡ Develop — Ai-Role Pipeline (per Task)</div>
+    <div class="col-body">
+
+      <!-- ── Step 1 ── -->
+      <div class="sub-header">Step 1 — 01 Solution Architect</div>
+      <div class="card step-card" style="border-left-color:var(--r-arch);">
+        <div class="card-title"><span class="sn" style="background:var(--r-arch);">1</span>วิเคราะห์ Task + กำหนด Tags &amp; Review Scope</div>
+        <div class="card-body">
+          <b>ทำทุก task</b> — วิเคราะห์ requirement → กำหนด tags:<br/>
+          <code>[sec-design]</code> <code>[sec]</code> <code>[dba-schema]</code> <code>[dba-query]</code> <code>[std-full]</code> <code>[std-partial]</code><br/>
+          ทุก tag ต้องมี <b>Review Scope</b> (R1): ระบุ reviewer ตรวจอะไร, §§ ไหน<br/>
+          แนบ: DDL Draft (ถ้า schema) / Sec Design (ถ้า sec-design) / Perf Baseline (ถ้า perf, R12)
+        </div>
+        <div class="card-io">
+          <span class="io-in">← Requirement + SAD + DB/Sec Impact Report (จากคน)</span><br/>
+          <span class="io-out">→ Development_Task_{ID}.md</span>
+        </div>
+        <div class="card-tags">
+          <span class="role role-arch">🏗️ 01 Architect</span>
+          <span class="tag tag-always">ทุก task</span>
+        </div>
+      </div>
+
+      <!-- ── Step 2 ── -->
+      <div class="sub-header">Step 2 — 02 Task QA</div>
+      <div class="card step-card" style="border-left-color:var(--r-qa);">
+        <div class="card-title"><span class="sn" style="background:var(--r-qa);">2</span>ตรวจเอกสาร + Tags + Scope</div>
+        <div class="card-body">
+          <b>ทำทุก task</b> — ตรวจ: เอกสารครบ? Tags ถูก? Review Scope ชัด?<br/>
+          DDL/Sec Design แนบแล้ว (ถ้ามี tag)?<br/>
+          <b>REJECT</b> → กลับ Step 1 (ป้องกัน Pre-check ทำเสียเปล่า)<br/>
+          <b>APPROVE</b> → มี <code>[dba-schema]</code> / <code>[sec-design]</code>? → Step 3 : ไม่มี → Step 4
+        </div>
+        <div class="card-io">
+          <span class="io-in">← Development_Task_{ID}.md</span><br/>
+          <span class="io-out">→ Task_QA_Report_{ID}.md (APPROVE / REJECT)</span>
+        </div>
+        <div class="card-tags">
+          <span class="role role-qa">📋 02 Task QA</span>
+          <span class="tag tag-always">ทุก task</span>
+          <span class="tag tag-gate">🚩 Gate</span>
+        </div>
+      </div>
+
+      <!-- ── Step 3 ── -->
+      <div class="sub-header">Step 3 — Pre-check Gate (ก่อน Dev · conditional · parallel)</div>
+      <div class="card step-card" style="border-left-color:var(--r-dba);">
+        <div class="card-title"><span class="sn" style="background:var(--r-dba);">3</span>🗄️ DBA Pre-check</div>
+        <div class="card-body">
+          <b>เมื่อมี <code>[dba-schema]</code></b> — ตรวจ DDL Draft:<br/>
+          Schema naming · Index design · Backward compat · Data impact<br/>
+          <b>APPROVE</b> → output Migration Script (R4)<br/>
+          <b>REJECT</b> → ส่ง Corrected DDL กลับ Step 1 (R3)
+        </div>
+        <div class="card-io">
+          <span class="io-in">← DDL Draft + Review Scope จาก Step 1</span><br/>
+          <span class="io-out">→ DBA_Precheck_{ID}.md + Migration_Script_{ID}.sql</span>
+        </div>
+        <div class="card-tags">
+          <span class="role role-dba">🗄️ DBA Pre-check</span>
+          <span class="tag tag-cond">if [dba-schema]</span>
+        </div>
+      </div>
+      <div class="card step-card" style="border-left-color:var(--r-sec);">
+        <div class="card-title"><span class="sn" style="background:var(--r-sec);">3</span>🔐 Sec Pre-check</div>
+        <div class="card-body">
+          <b>เมื่อมี <code>[sec-design]</code></b> — ตรวจ Sec Design:<br/>
+          Auth scheme · PII masking strategy · Input validation approach · Authz policy<br/>
+          <b>APPROVE</b> → Approved Design เป็น spec ให้ Dev<br/>
+          <b>REJECT</b> → ส่ง Corrected Design กลับ Step 1
+        </div>
+        <div class="card-io">
+          <span class="io-in">← Sec Design + Review Scope จาก Step 1</span><br/>
+          <span class="io-out">→ Sec_Precheck_{ID}.md + Approved Auth/PII Design</span>
+        </div>
+        <div class="card-tags">
+          <span class="role role-sec">🔐 Sec Pre-check</span>
+          <span class="tag tag-cond">if [sec-design]</span>
+        </div>
+      </div>
+
+      <!-- ── Step 4 ── -->
+      <div class="sub-header">Step 4 — 03 Developer</div>
+      <div class="card step-card" style="border-left-color:var(--r-dev);">
+        <div class="card-title"><span class="sn" style="background:var(--r-dev);">4</span>Implement + Observations</div>
+        <div class="card-body">
+          <b>ทำทุก task</b> — Code ตาม Task + Approved Design จาก Pre-check (ถ้ามี)<br/>
+          <b>บังคับมี Observations section</b> (R8):<br/>
+          Security observations / DB observations / Quality observations<br/>
+          กรอก "None" ถ้าไม่พบ — ห้ามละเว้น
+        </div>
+        <div class="card-io">
+          <span class="io-in">← Development_Task_{ID}.md + Approved DDL/Sec Design (ถ้ามี)</span><br/>
+          <span class="io-out">→ Code Changes + Development_Report_{ID}.md</span>
+        </div>
+        <div class="card-tags">
+          <span class="role role-dev">💻 03 Developer</span>
+          <span class="tag tag-always">ทุก task</span>
+        </div>
+      </div>
+
+      <!-- ── Step 5 ── -->
+      <div class="sub-header">Step 5 — Parallel Review Gate (หลัง Dev)</div>
+      <div class="card step-card" style="border-left-color:var(--r-devqc);">
+        <div class="card-title"><span class="sn" style="background:var(--r-devqc);">5</span>04 Dev QC</div>
+        <div class="card-body">
+          <b>ทำทุก task</b> — ตรวจ: Scope/Logic ถูกตาม Task?<br/>
+          อ่าน Observations → Triage (R9):<br/>
+          พบ issue → เพิ่ม tag ย้อนหลัง (R2) / สร้าง Follow-up Task<br/>
+          <b>REJECT</b> → กลับ Step 4
+        </div>
+        <div class="card-io">
+          <span class="io-in">← Code + Development_Report_{ID}.md</span><br/>
+          <span class="io-out">→ Dev_QC_Report_{ID}.md</span>
+        </div>
+        <div class="card-tags">
+          <span class="role role-devqc">✅ 04 Dev QC</span>
+          <span class="tag tag-always">ทุก task</span>
+        </div>
+      </div>
+      <div class="card step-card" style="border-left-color:var(--r-sec);">
+        <div class="card-title"><span class="sn" style="background:var(--r-sec);">5</span>🔐 Sec Code Review</div>
+        <div class="card-body">
+          <b>เมื่อมี <code>[sec]</code> หรือ <code>[sec-design]</code></b><br/>
+          ตรวจ code จริง: Auth/Validation impl ตรง approved design?<br/>
+          Error leak? PII in code? Secret? Test data bypass?<br/>
+          + Related Pattern Scan ทั้ง codebase (R6)<br/>
+          <b>Primary §§:</b> §3.6, §3.21-3.23, §7, §8.6, §9, §15, §16.4, §18-§19
+        </div>
+        <div class="card-io">
+          <span class="io-in">← Code + Review Scope + Approved Sec Design (ถ้ามี)</span><br/>
+          <span class="io-out">→ Security_Review_{ID}.md</span>
+        </div>
+        <div class="card-tags">
+          <span class="role role-sec">🔐 Sec Code Review</span>
+          <span class="tag tag-cond">if [sec] / [sec-design]</span>
+        </div>
+      </div>
+      <div class="card step-card" style="border-left-color:var(--r-dba);">
+        <div class="card-title"><span class="sn" style="background:var(--r-dba);">5</span>🗄️ DBA Query Review</div>
+        <div class="card-body">
+          <b>เมื่อมี <code>[dba-query]</code></b><br/>
+          ตรวจ code จริง: Query perf? N+1? Transaction? Audit log?<br/>
+          Entity↔DDL match (R5)?<br/>
+          รองรับ EF Core + Dapper + External System (R11)<br/>
+          <b>Primary §§:</b> §3.16-3.20, §3.24-3.27, §17
+        </div>
+        <div class="card-io">
+          <span class="io-in">← Code + Review Scope + Approved DDL (ถ้ามี)</span><br/>
+          <span class="io-out">→ DBA_Review_{ID}.md</span>
+        </div>
+        <div class="card-tags">
+          <span class="role role-dba">🗄️ DBA Query Review</span>
+          <span class="tag tag-cond">if [dba-query]</span>
+        </div>
+      </div>
+
+      <!-- ── Step 6 ── -->
+      <div class="sub-header">Step 6 — Coding Standard Reviewer (conditional)</div>
+      <div class="card step-card" style="border-left-color:var(--r-std);">
+        <div class="card-title"><span class="sn" style="background:var(--r-std);">6</span>📋 Std Reviewer — 295 เกณฑ์</div>
+        <div class="card-body">
+          <b>เมื่อมี <code>[std-full]</code> หรือ <code>[std-partial]</code></b><br/>
+          ตรวจ: Naming §2 · Structure §1 · DI §11 · Testing §12<br/>
+          API Design §10,§13 · YAGNI §20 · Format §14<br/>
+          <b>ข้ามส่วนที่ Sec/DBA ตรวจแล้ว</b> (R7) — รับ report มาอ้างอิง<br/>
+          <b>Primary §§:</b> §1-§2, §3.1-3.15, §3.28-3.30, §4-§6, §8, §10-§14, §16, §20-§26
+        </div>
+        <div class="card-io">
+          <span class="io-in">← Code + Sec/DBA Review Reports (ถ้ามี)</span><br/>
+          <span class="io-out">→ Std_Review_{ID}.md</span>
+        </div>
+        <div class="card-tags">
+          <span class="role role-std">📋 Std Reviewer</span>
+          <span class="tag tag-cond">if [std-full] / [std-partial]</span>
+        </div>
+      </div>
+
+      <div class="checkpoint green">✅ MERGE READY — ทุก Review ผ่าน → merge to main</div>
+
+      <!-- ── Fast Track (R10) ── -->
+      <div class="sub-header" style="color:var(--c-red);">⚡ Fast Track — Hotfix (R10)</div>
+      <div class="card" style="border-left: 3px solid var(--c-red);">
+        <div class="card-title" style="color:var(--c-red);">Production Incident → ข้าม Step 2 + Step 5(QC)</div>
+        <div class="card-body">
+          เส้นทางลัด: <b>Step 1 (Arch) → Step 4 (Dev) → Step 5 (Sec)</b><br/>
+          + mandatory Follow-up Task ภายใน 1 sprint (full pipeline)
+        </div>
+        <div class="card-tags">
+          <span class="role role-arch">🏗️ 01 Arch</span>
+          <span class="role role-dev">💻 03 Dev</span>
+          <span class="role role-sec">🔐 Sec</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══ After Develop — งานคน ═══ -->
+  <div class="phase-sep">
+    <div style="font-size:18px;">🟡</div>
+    <div class="sep-line" style="background:var(--c-yellow);"></div>
+    <div class="sep-label" style="color:var(--c-yellow);">After</div>
+  </div>
+
+  <div class="col">
+    <div class="col-header" style="background:var(--c-brown);">UAT (D)</div>
+    <div class="col-body">
+      <div class="card step-card" style="border-left-color:var(--r-dev);">
+        <div class="card-title">💻 Defect Fix → กลับเข้า Pipeline Step 4→5</div>
+        <div class="card-body">User พบ defect → Dev fix ผ่าน <b>Step 4 (Dev) → Step 5 (QC+Review)</b><br/>ไม่ต้องกลับ Step 1 ถ้า defect อยู่ใน scope เดิม</div>
+        <div class="card-tags">
+          <span class="role role-dev">💻 03 Developer</span>
+          <span class="role role-devqc">✅ 04 Dev QC</span>
+          <span class="tag tag-cond">+ Sec/DBA ถ้ามี tag</span>
+        </div>
+      </div>
+      <div class="col-empty" style="padding:6px 0;">+ งานคน: BA เตรียม test case · User ทดสอบ</div>
+    </div>
+  </div>
+
+  <div class="phase-sep">
+    <div style="font-size:18px;">🟢</div>
+    <div class="sep-line" style="background:var(--c-green);"></div>
+    <div class="sep-label" style="color:var(--c-green);">(I)</div>
+  </div>
+
+  <div class="col">
+    <div class="col-header" style="background:var(--c-green);">Go Live (I)</div>
+    <div class="col-body">
+      <div class="card step-card" style="border-left-color:var(--r-dba);">
+        <div class="card-title">🗄️ DBA AI: Run Production Migration</div>
+        <div class="card-body">ใช้ Migration Script ที่ผ่าน DBA Pre-check (Step 3) เท่านั้น</div>
+        <div class="card-io"><span class="io-in">← Migration_Script_{ID}.sql (approved)</span></div>
+        <div class="card-tags"><span class="role role-dba">🗄️ DBA</span></div>
+      </div>
+      <div class="card step-card" style="border-left-color:var(--r-sec);">
+        <div class="card-title">🔐 Sec AI: Verify Production Config</div>
+        <div class="card-body">TLS ถูก? Secret อยู่ Vault? Firewall? No debug mode?</div>
+        <div class="card-tags"><span class="role role-sec">🔐 Sec</span></div>
+      </div>
+      <div class="col-empty" style="padding:6px 0;">+ งานคน: Infra deploy · Dev smoke test</div>
+      <div class="checkpoint green">✅ Go-Live Confirmed</div>
+    </div>
+  </div>
+
+  <div class="phase-sep">
+    <div style="font-size:18px;">🔵</div>
+    <div class="sep-line" style="background:var(--c-teal);"></div>
+    <div class="sep-label" style="color:var(--c-teal);">(M)</div>
+  </div>
+
+  <div class="col">
+    <div class="col-header" style="background:var(--c-teal);">Post Implement (M)</div>
+    <div class="col-body">
+      <div class="card step-card" style="border-left-color:var(--r-dba);">
+        <div class="card-title">🗄️ DBA AI: Monitor DB Performance</div>
+        <div class="card-body">Slow query, deadlock, disk usage, connection pool</div>
+        <div class="card-tags"><span class="role role-dba">🗄️ DBA</span></div>
+      </div>
+      <div class="card" style="border-left: 3px solid var(--c-red);">
+        <div class="card-title" style="color:var(--c-red);">Hotfix → Fast Track (R10)</div>
+        <div class="card-body"><b>Step 1 (Arch) → Step 4 (Dev) → Step 5 (Sec)</b><br/>+ mandatory Follow-up Task ภายใน 1 sprint</div>
+        <div class="card-tags">
+          <span class="role role-arch">🏗️ 01 Arch</span>
+          <span class="role role-dev">💻 03 Dev</span>
+          <span class="role role-sec">🔐 Sec</span>
+        </div>
+      </div>
+      <div class="col-empty" style="padding:6px 0;">+ งานคน: Infra + Dev warranty monitoring · PM handover</div>
+    </div>
+  </div>
+
+  <div class="phase-sep">
+    <div style="font-size:18px;">📊</div>
+    <div class="sep-line" style="background:var(--c-blue);"></div>
+    <div class="sep-label" style="color:var(--c-blue);">(A)</div>
+  </div>
+
+  <div class="col">
+    <div class="col-header" style="background:var(--c-blue);">Project Assessment (A)</div>
+    <div class="col-body">
+      <div class="card step-card" style="border-left-color:var(--r-arch);">
+        <div class="card-title">🏗️ Architect AI: Retrospective — Solution Quality</div>
+        <div class="card-body">Solution ที่ออกแบบถูกจริง? ต้องปรับ template?<br/>Feedback → pipeline improvement</div>
+        <div class="card-tags"><span class="role role-arch">🏗️ 01 Architect</span></div>
+      </div>
+      <div class="card step-card" style="border-left-color:var(--r-sec);">
+        <div class="card-title">🔐 Sec AI: Retrospective — Security Gaps</div>
+        <div class="card-body">Pre-check จับได้กี่ % · Code Review จับได้อีกเท่าไร · pattern ที่ซ้ำ</div>
+        <div class="card-tags"><span class="role role-sec">🔐 Sec</span></div>
+      </div>
+      <div class="card step-card" style="border-left-color:var(--r-dba);">
+        <div class="card-title">🗄️ DBA AI: Retrospective — DB Quality</div>
+        <div class="card-body">Migration issue · query perf ที่พบ post-deploy · schema design ที่ต้องปรับ</div>
+        <div class="card-tags"><span class="role role-dba">🗄️ DBA</span></div>
+      </div>
+      <div class="col-empty" style="padding:6px 0;">+ งานคน: PM Project Closure · Lessons Learned</div>
+    </div>
+  </div>
+
+</div><!-- end kanban -->
+
+<footer class="page-footer">
+  Ai-Role Pipeline — Step 1-6 Framework Reference<br/>
+  อ้างอิง: Role-Research.md (Step 1-6, R1-R12) · Role-Plan.md (7 Ai Roles)<br/>
+  <b>Ai Roles ทั้ง 7:</b> 01 Solution Architect · 02 Task QA · 03 Developer · 04 Developer QC · Sec · DBA · Std Reviewer<br/>
+  <span style="color:var(--accent);">⚡ แกนหลัก = Develop column (Step 1-6) · บาง col ก่อน/หลังก็มี 🏗️Arch / 🗄️DBA / 🔐Sec ทำงาน</span>
+</footer>
+
+<script>
+(function() {
+  const k = document.querySelector('.kanban');
+  if (!k) return;
+  let down = false, sx, sl;
+  k.addEventListener('mousedown', e => {
+    if (e.target.closest('.card, .col-header, .checkpoint')) return;
+    down = true; k.classList.add('dragging');
+    sx = e.pageX - k.offsetLeft; sl = k.scrollLeft;
+  });
+  k.addEventListener('mouseleave', () => { down = false; k.classList.remove('dragging'); });
+  k.addEventListener('mouseup', () => { down = false; k.classList.remove('dragging'); });
+  k.addEventListener('mousemove', e => {
+    if (!down) return; e.preventDefault();
+    k.scrollLeft = sl - ((e.pageX - k.offsetLeft) - sx) * 1.5;
+  });
+})();
+</script>
+</body>
+</html>

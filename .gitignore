@@ -31,6 +31,16 @@
 # Exclude ESTATEMENT_API source (has its own git repo)
 ESTATEMENT_API/
 
+# Archives (too large for git)
+*.rar
+*.zip
+*.7z
+*.tar.gz
+
+# Temp / scratch files
+temp_search.txt
+note
+
 # Common
 .DS_Store
 Thumbs.db

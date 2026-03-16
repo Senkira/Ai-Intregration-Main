@@ -1,0 +1,1894 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coding Standard — ASP.NET Core API + Dapper</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   DESIGN SYSTEM — Light Corporate International Presentation
+   ═══════════════════════════════════════════════════════════════ */
+:root {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f7f8fa;
+  --bg-card: #f3f4f6;
+  --bg-code: #f8f9fb;
+  --text-primary: #111827;
+  --text-secondary: #4b5563;
+  --text-muted: #9ca3af;
+  --accent-red: #dc2626;
+  --accent-yellow: #d97706;
+  --accent-green: #059669;
+  --accent-blue: #1d4ed8;
+  --accent-purple: #7c3aed;
+  --accent-cyan: #0891b2;
+  --accent-orange: #ea580c;
+  --border: #e5e7eb;
+  --border-light: #f3f4f6;
+  --gradient-hero: linear-gradient(135deg, #f0f5ff 0%, #e0e7ff 50%, #dbeafe 100%);
+  --gradient-red: linear-gradient(135deg, #dc2626, #ef4444);
+  --gradient-blue: linear-gradient(135deg, #1d4ed8, #3b82f6);
+  --gradient-purple: linear-gradient(135deg, #7c3aed, #a78bfa);
+  --gradient-green: linear-gradient(135deg, #059669, #34d399);
+  --shadow: 0 4px 24px rgba(0,0,0,0.07);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+  --radius: 10px;
+  --radius-sm: 6px;
+  --radius-xs: 3px;
+  --transition: all 0.2s ease;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; font-size: 15px; }
+
+body {
+  font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Noto Sans Thai', sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 7px; }
+::-webkit-scrollbar-track { background: #f1f1f1; }
+::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #999; }
+
+/* ── NAVIGATION ── */
+.sidebar {
+  position: fixed; top: 0; left: 0;
+  width: 280px; height: 100vh;
+  background: #ffffff;
+  border-right: 1px solid var(--border);
+  overflow-y: auto; z-index: 100;
+  padding: 20px 0;
+  transition: transform 0.3s ease;
+  box-shadow: 2px 0 8px rgba(0,0,0,0.03);
+}
+
+.sidebar-header {
+  padding: 0 20px 20px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 12px;
+}
+
+.sidebar-header h2 {
+  font-size: 0.85rem;
+  color: var(--accent-blue);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 4px;
+  font-weight: 700;
+}
+
+.sidebar-header .sub {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.nav-group { margin-bottom: 8px; }
+
+.nav-group-title {
+  padding: 6px 20px;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 20px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.82rem;
+  transition: var(--transition);
+  border-left: 3px solid transparent;
+}
+
+.nav-link:hover {
+  background: rgba(29,78,216,0.06);
+  color: var(--accent-blue);
+  border-left-color: var(--accent-blue);
+}
+
+.nav-link .badge {
+  font-size: 0.6rem;
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-weight: 600;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.badge-required { background: #fef2f2; color: var(--accent-red); border: 1px solid #fecaca; }
+.badge-recommended { background: #fffbeb; color: var(--accent-yellow); border: 1px solid #fde68a; }
+
+/* ── MAIN CONTENT ── */
+.main {
+  margin-left: 280px;
+  padding: 0;
+  min-height: 100vh;
+}
+
+/* ── HERO SECTION ── */
+.hero {
+  background: var(--gradient-hero);
+  padding: 72px 60px 56px;
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px solid var(--border);
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(29,78,216,0.05) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: rgba(29,78,216,0.08);
+  border: 1px solid rgba(29,78,216,0.2);
+  border-radius: 20px;
+  font-size: 0.75rem;
+  color: var(--accent-blue);
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+.hero h1 {
+  font-size: 2.8rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 16px;
+  color: #111827;
+}
+
+.hero .subtitle {
+  font-size: 1.05rem;
+  color: var(--text-secondary);
+  max-width: 650px;
+  margin-bottom: 32px;
+  line-height: 1.8;
+}
+
+.hero-stats {
+  display: flex;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+
+.stat-card {
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 16px 24px;
+  text-align: center;
+  min-width: 130px;
+  box-shadow: var(--shadow-sm);
+}
+
+.stat-card .number {
+  font-size: 2rem;
+  font-weight: 700;
+  display: block;
+}
+
+.stat-card .label {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.num-total { color: #1d4ed8; }
+.num-required { color: #dc2626; }
+.num-recommended { color: #d97706; }
+.num-sections { color: #7c3aed; }
+
+/* ── SECTION ── */
+.section {
+  padding: 44px 60px;
+  border-bottom: 1px solid var(--border);
+}
+
+.section:last-child { border-bottom: none; }
+
+.section-anchor { scroll-margin-top: 20px; }
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+.section-num {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.section-num.required { background: var(--gradient-red); color: #fff; }
+.section-num.recommended { background: linear-gradient(135deg, #d97706, #f59e0b); color: #fff; }
+
+.section-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.section-title small {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-weight: 400;
+  margin-top: 2px;
+}
+
+/* ── OVERVIEW GRID ── */
+.overview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+  margin: 28px 0;
+}
+
+.overview-card {
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  transition: var(--transition);
+  cursor: default;
+  box-shadow: var(--shadow-sm);
+}
+
+.overview-card:hover {
+  border-color: var(--accent-blue);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(29,78,216,0.08);
+}
+
+.overview-card .card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.overview-card .card-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.overview-card .card-title {
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.overview-card .card-count {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.overview-card .card-body {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.overview-card .card-body ul {
+  list-style: none;
+  margin-top: 6px;
+}
+
+.overview-card .card-body ul li::before {
+  content: '›';
+  color: var(--accent-blue);
+  margin-right: 6px;
+  font-weight: 700;
+  font-size: 1.1em;
+}
+
+/* COLOR THEMES FOR CARDS */
+.card-arch .card-icon { background: #f3e8ff; color: var(--accent-purple); }
+.card-data .card-icon { background: #dbeafe; color: var(--accent-blue); }
+.card-sec .card-icon { background: #fef2f2; color: var(--accent-red); }
+.card-qual .card-icon { background: #ecfdf5; color: var(--accent-green); }
+.card-api .card-icon { background: #e0f2fe; color: var(--accent-cyan); }
+.card-perf .card-icon { background: #fff7ed; color: var(--accent-orange); }
+.card-adv .card-icon { background: #f0fdf4; color: #16a34a; }
+.card-devops .card-icon { background: #f3f4f6; color: var(--text-secondary); }
+
+/* ── CRITERIA TABLE ── */
+.criteria-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  margin: 16px 0;
+  font-size: 0.82rem;
+}
+
+.criteria-table thead th {
+  background: var(--bg-card);
+  padding: 10px 14px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--border);
+}
+
+.criteria-table tbody td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border-light);
+  vertical-align: top;
+}
+
+.criteria-table tbody tr:hover { background: #f8fafc; }
+
+.criteria-table tbody tr:last-child td { border-bottom: none; }
+
+.criteria-id {
+  font-family: 'Cascadia Code', 'Fira Code', monospace;
+  color: var(--accent-blue);
+  font-weight: 700;
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+/* ── CODE BLOCK ── */
+.code-block {
+  background: var(--bg-code);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 16px 20px;
+  margin: 14px 0;
+  overflow-x: auto;
+  font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: var(--text-primary);
+}
+
+.code-block .code-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: -16px -20px 12px;
+  padding: 8px 20px;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+  font-family: 'Segoe UI', sans-serif;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.code-block .lang-tag {
+  background: #dbeafe;
+  color: var(--accent-blue);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 600;
+}
+
+/* ── TREE / FOLDER STRUCTURE ── */
+.tree-block {
+  background: var(--bg-code);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 16px 20px;
+  margin: 14px 0;
+  font-family: 'Cascadia Code', 'Fira Code', monospace;
+  font-size: 0.78rem;
+  line-height: 1.8;
+  white-space: pre;
+  overflow-x: auto;
+}
+
+/* ── HIGHLIGHT BOXES ── */
+.info-box {
+  border-radius: var(--radius-sm);
+  padding: 14px 18px;
+  margin: 14px 0;
+  font-size: 0.82rem;
+  border-left: 4px solid;
+  line-height: 1.6;
+}
+
+.info-box.tip { background: #f0fdf4; border-color: var(--accent-green); }
+.info-box.warn { background: #fffbeb; border-color: var(--accent-yellow); }
+.info-box.danger { background: #fef2f2; border-color: var(--accent-red); }
+.info-box.info { background: #eff6ff; border-color: var(--accent-blue); }
+
+.info-box strong { color: var(--text-primary); }
+
+.info-box.tip strong { color: #047857; }
+.info-box.warn strong { color: #b45309; }
+.info-box.danger strong { color: #b91c1c; }
+.info-box.info strong { color: #1e40af; }
+
+/* ── TAG / LABEL ── */
+.tag {
+  display: inline-block;
+  font-size: 0.65rem;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+.tag-required { background: #fef2f2; color: var(--accent-red); }
+.tag-recommended { background: #fffbeb; color: var(--accent-yellow); }
+.tag-security { background: #f5f3ff; color: var(--accent-purple); }
+.tag-cwe { background: #fff1f2; color: #be123c; }
+
+/* ── QUICK REF BOX ── */
+.quick-ref {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  margin: 20px 0;
+  font-family: 'Cascadia Code', 'Fira Code', monospace;
+  font-size: 0.75rem;
+  line-height: 1.8;
+}
+
+.quick-ref h4 {
+  font-family: 'Segoe UI', sans-serif;
+  color: var(--accent-blue);
+  margin-bottom: 12px;
+  font-size: 0.85rem;
+}
+
+.quick-ref .col-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.quick-ref .col h5 {
+  font-family: 'Segoe UI', sans-serif;
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  letter-spacing: 0.5px;
+}
+
+.quick-ref .col ul {
+  list-style: none;
+  color: var(--text-primary);
+}
+
+.quick-ref .dont {
+  color: var(--accent-red);
+  font-weight: 500;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 1024px) {
+  .sidebar { transform: translateX(-100%); }
+  .sidebar.open { transform: translateX(0); }
+  .main { margin-left: 0; }
+  .hero { padding: 40px 24px; }
+  .hero h1 { font-size: 2rem; }
+  .section { padding: 32px 24px; }
+  .overview-grid { grid-template-columns: 1fr; }
+  .hero-stats { gap: 12px; }
+  .stat-card { min-width: 100px; padding: 12px 16px; }
+  .quick-ref .col-grid { grid-template-columns: 1fr; }
+}
+
+/* ── MOBILE TOGGLE ── */
+.menu-toggle {
+  display: none;
+  position: fixed;
+  top: 12px; left: 12px;
+  z-index: 200;
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 1.2rem;
+  box-shadow: var(--shadow-sm);
+}
+
+@media (max-width: 1024px) {
+  .menu-toggle { display: block; }
+}
+
+/* ── COMPARISON TABLE ── */
+.compare-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  margin: 14px 0;
+  font-size: 0.8rem;
+}
+
+.compare-table th {
+  background: var(--bg-card);
+  padding: 10px 14px;
+  text-align: left;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border);
+}
+
+.compare-table td {
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.compare-table tr:last-child td { border-bottom: none; }
+
+/* ── ANIMATED COUNTER ── */
+.section-counter {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-left: auto;
+}
+
+/* ── ANTI-PATTERN ── */
+.anti-pattern {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 14px 0;
+}
+
+.anti-bad, .anti-good {
+  background: var(--bg-code);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  font-family: 'Cascadia Code', monospace;
+  font-size: 0.76rem;
+  line-height: 1.6;
+}
+
+.anti-bad { border-left: 3px solid var(--accent-red); }
+.anti-good { border-left: 3px solid var(--accent-green); }
+
+.anti-label {
+  font-family: 'Segoe UI', sans-serif;
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.anti-bad .anti-label { color: var(--accent-red); }
+.anti-good .anti-label { color: var(--accent-green); }
+
+@media (max-width: 768px) {
+  .anti-pattern { grid-template-columns: 1fr; }
+}
+
+/* ── SEARCH BOX ── */
+.search-box {
+  padding: 0 16px 12px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.search-box input {
+  width: 100%;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 7px 10px 7px 30px;
+  color: var(--text-primary);
+  font-size: 0.78rem;
+  outline: none;
+  transition: border-color 0.2s;
+  font-family: inherit;
+}
+
+.search-box input::placeholder { color: var(--text-muted); }
+.search-box input:focus { border-color: var(--accent-blue); }
+
+.search-box .search-icon {
+  position: absolute;
+  left: 26px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  pointer-events: none;
+}
+
+.search-box .wrapper { position: relative; }
+
+/* ── SCROLL TO TOP ── */
+.scroll-top {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 42px;
+  height: 42px;
+  background: var(--accent-blue);
+  border: none;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 1.2rem;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.3s, transform 0.3s;
+  z-index: 150;
+  box-shadow: 0 2px 10px rgba(29,78,216,0.3);
+}
+
+.scroll-top.visible { opacity: 1; transform: translateY(0); }
+.scroll-top:hover { background: #2563eb; }
+
+/* ── PROGRESS BAR ── */
+.progress-bar {
+  position: fixed;
+  top: 0;
+  left: 280px;
+  right: 0;
+  height: 3px;
+  background: var(--bg-secondary);
+  z-index: 200;
+}
+
+.progress-bar .fill {
+  height: 100%;
+  background: linear-gradient(90deg, #1d4ed8, #7c3aed);
+  width: 0%;
+  transition: width 0.15s ease-out;
+}
+
+@media (max-width: 1024px) {
+  .progress-bar { left: 0; }
+}
+
+/* ── FOOTER ── */
+.footer {
+  padding: 32px 60px;
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  text-align: center;
+}
+</style>
+</head>
+<body>
+
+<!-- MOBILE TOGGLE -->
+<button class="menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰</button>
+
+<!-- ═══════════════════════════════════════════════════════
+     SIDEBAR NAVIGATION
+     ═══════════════════════════════════════════════════════ -->
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <h2>Coding Standard</h2>
+    <div class="sub">ASP.NET Core API + Dapper · .NET 10 / C# 14</div>
+  </div>
+
+  <div class="search-box">
+    <div class="wrapper">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="searchInput" placeholder="ค้นหาเกณฑ์... (Ctrl+K)" autocomplete="off">
+    </div>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-title">Architecture</div>
+    <a class="nav-link" href="#s1">§1 Project Structure <span class="badge badge-required">Required</span></a>
+    <a class="nav-link" href="#s2">§2 Naming Convention <span class="badge badge-required">Required</span></a>
+    <a class="nav-link" href="#s6">§6 Dependency Injection <span class="badge badge-required">Required</span></a>
+    <a class="nav-link" href="#s14">§14 Code Formatting <span class="badge badge-required">Required</span></a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-title">Data & Business</div>
+    <a class="nav-link" href="#s3">§3 DataAccess (Dapper) <span class="badge badge-required">Required</span></a>
+    <a class="nav-link" href="#s4">§4 Service Layer <span class="badge badge-required">Required</span></a>
+    <a class="nav-link" href="#s5">§5 Controller Layer <span class="badge badge-required">Required</span></a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-title">Security</div>
+    <a class="nav-link" href="#s7">§7 Auth & Authorization <span class="badge badge-required">Required</span></a>
+    <a class="nav-link" href="#s9">§9 Configuration <span class="badge badge-required">Required</span></a>
+    <a class="nav-link" href="#s15">§15 Input Validation <span class="badge badge-required">Required</span></a>
+    <a class="nav-link" href="#s19">§19 Dependency Mgmt <span class="badge badge-required">Required</span></a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-title">Quality & Testing</div>
+    <a class="nav-link" href="#s8">§8 Error & Logging <span class="badge badge-required">Required</span></a>
+    <a class="nav-link" href="#s12">§12 Testing <span class="badge badge-required">Required</span></a>
+    <a class="nav-link" href="#s20">§20 Complexity <span class="badge badge-required">Required</span></a>
+    <a class="nav-link" href="#s11">§11 Code Quality <span class="badge badge-recommended">Recommended</span></a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-title">API Design</div>
+    <a class="nav-link" href="#s13">§13 API Design <span class="badge badge-required">Required</span></a>
+    <a class="nav-link" href="#s10">§10 OpenAPI Doc <span class="badge badge-recommended">Recommended</span></a>
+    <a class="nav-link" href="#s21">§21 Documentation <span class="badge badge-recommended">Recommended</span></a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-title">Performance</div>
+    <a class="nav-link" href="#s17">§17 Performance <span class="badge badge-required">Required</span></a>
+    <a class="nav-link" href="#s16">§16 Observability <span class="badge badge-required">Required</span></a>
+    <a class="nav-link" href="#s18">§18 HTTP Client <span class="badge badge-required">Required</span></a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-title">Advanced</div>
+    <a class="nav-link" href="#s22">§22 Resilience <span class="badge badge-recommended">Recommended</span></a>
+    <a class="nav-link" href="#s23">§23 Concurrency <span class="badge badge-recommended">Recommended</span></a>
+    <a class="nav-link" href="#s24">§24 Caching <span class="badge badge-recommended">Recommended</span></a>
+    <a class="nav-link" href="#s25">§25 Feature Flags <span class="badge badge-recommended">Recommended</span></a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-title">DevOps</div>
+    <a class="nav-link" href="#s26">§26 DevOps Files <span class="badge badge-required">Required</span></a>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════
+     MAIN CONTENT
+     ═══════════════════════════════════════════════════════ -->
+<main class="main">
+
+<!-- ── HERO ── -->
+<section class="hero">
+  <div class="hero-badge">📋 ASP.NET Core Web API + Dapper · .NET 10 / C# 14</div>
+  <h1>Coding Standard<br>Criteria</h1>
+  <p class="subtitle">Enterprise-wide API development standards — mandatory for all ASP.NET Core Web API projects under TFS ITGroup_Collection</p>
+
+  <div class="hero-stats">
+    <div class="stat-card">
+      <span class="number num-total">295</span>
+      <span class="label">Total Criteria</span>
+    </div>
+    <div class="stat-card">
+      <span class="number num-required">246</span>
+      <span class="label">🔴 Required</span>
+    </div>
+    <div class="stat-card">
+      <span class="number num-recommended">49</span>
+      <span class="label">🟡 Recommended</span>
+    </div>
+    <div class="stat-card">
+      <span class="number num-sections">26</span>
+      <span class="label">Sections</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     OVERVIEW
+     ═══════════════════════════════════════════════════════ -->
+<section class="section" id="overview">
+  <div class="section-header">
+    <div class="section-num required" style="background: var(--gradient-blue);">★</div>
+    <div class="section-title">ภาพรวม 8 กลุ่มหลัก <small>Overview — 26 Sections · 295 Criteria</small></div>
+  </div>
+
+  <div class="overview-grid">
+    <!-- ARCHITECTURE -->
+    <div class="overview-card card-arch">
+      <div class="card-header">
+        <div class="card-icon">🏛️</div>
+        <div>
+          <div class="card-title">ARCHITECTURE</div>
+          <div class="card-count">88 เกณฑ์ — §1, §2, §6, §14</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <ul>
+          <li>3-Layer: Controller → Service → DataAccess</li>
+          <li>PascalCase, _camelCase, ห้าม UPPER_SNAKE</li>
+          <li>Singleton / Scoped DI, ห้าม Captive Dependency</li>
+          <li>.editorconfig, Allman 4 spaces, dotnet format</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- DATA & BUSINESS -->
+    <div class="overview-card card-data">
+      <div class="card-header">
+        <div class="card-icon">💾</div>
+        <div>
+          <div class="card-title">DATA & BUSINESS</div>
+          <div class="card-count">54 เกณฑ์ — §3, §4, §5</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <ul>
+          <li>Dapper only — ห้าม EF Core</li>
+          <li>Repository + BaseRepository + @parameter</li>
+          <li>async + CancellationToken ทุก method</li>
+          <li>Controller บาง: รับ → เรียก → ส่ง</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- SECURITY -->
+    <div class="overview-card card-sec">
+      <div class="card-header">
+        <div class="card-icon">🔒</div>
+        <div>
+          <div class="card-title">SECURITY</div>
+          <div class="card-count">30 เกณฑ์ — §7, §9, §15, §19</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <ul>
+          <li>JWT Bearer + Validate All = true</li>
+          <li>appsettings per Environment, Vault for secrets</li>
+          <li>FluentValidation, ห้าม dynamic/object</li>
+          <li>Pin NuGet version, สแกน CVE ก่อน Release</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- QUALITY -->
+    <div class="overview-card card-qual">
+      <div class="card-header">
+        <div class="card-icon">✅</div>
+        <div>
+          <div class="card-title">QUALITY & TESTING</div>
+          <div class="card-count">38 เกณฑ์ — §8, §12, §20, §11</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <ul>
+          <li>ILogger structured log, ห้าม StackTrace leak</li>
+          <li>xUnit + Moq + AAA, Coverage ≥ 80% Service</li>
+          <li>Cognitive ≤ 15, Cyclomatic ≤ 10, Method ≤ 30 บรรทัด</li>
+          <li>Review ≥ 1 คนก่อน Merge</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- API DESIGN -->
+    <div class="overview-card card-api">
+      <div class="card-header">
+        <div class="card-icon">🌐</div>
+        <div>
+          <div class="card-title">API DESIGN</div>
+          <div class="card-count">21 เกณฑ์ — §13, §10, §21</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <ul>
+          <li>REST /api/v1/resource + HTTP Verbs</li>
+          <li>Pagination, Versioning, camelCase JSON</li>
+          <li>OpenAPI built-in (.NET 10)</li>
+          <li>ISO 8601 UTC datetime</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- PERFORMANCE -->
+    <div class="overview-card card-perf">
+      <div class="card-header">
+        <div class="card-icon">⚡</div>
+        <div>
+          <div class="card-title">PERFORMANCE</div>
+          <div class="card-count">30 เกณฑ์ — §17, §16, §18</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <ul>
+          <li>P95 ≤ 500ms, ห้าม N+1 Query</li>
+          <li>Structured JSON Log + CorrelationId</li>
+          <li>IHttpClientFactory + Polly Retry + CircuitBreaker</li>
+          <li>OpenTelemetry, HealthCheck endpoint</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ADVANCED -->
+    <div class="overview-card card-adv">
+      <div class="card-header">
+        <div class="card-icon">🔧</div>
+        <div>
+          <div class="card-title">ADVANCED PATTERNS</div>
+          <div class="card-count">27 เกณฑ์ — §22, §23, §24, §25</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <ul>
+          <li>CircuitBreaker + Fallback + Graceful Shutdown</li>
+          <li>ConcurrentDictionary, SemaphoreSlim</li>
+          <li>IMemoryCache / Redis + TTL + Cache-Aside</li>
+          <li>FeatureManagement NuGet, cleanup ≤ 1 Sprint</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- DEVOPS -->
+    <div class="overview-card card-devops">
+      <div class="card-header">
+        <div class="card-icon">🚀</div>
+        <div>
+          <div class="card-title">DEVOPS</div>
+          <div class="card-count">7 เกณฑ์ — §26</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <ul>
+          <li>ห้ามแก้ Jenkinsfile / Dockerfile / K8s manifests</li>
+          <li>สร้าง Ticket สำหรับ DevOps changes</li>
+          <li>อ่านเข้าใจ Pipeline Gates</li>
+          <li>Local test ก่อน Push</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     §1 — PROJECT STRUCTURE
+     ═══════════════════════════════════════════════════════ -->
+<section class="section section-anchor" id="s1">
+  <div class="section-header">
+    <div class="section-num required">1</div>
+    <div class="section-title">Project Structure <small>โครงสร้างโปรเจค — 10 เกณฑ์ (7 บังคับ + 3 แนะนำ)</small></div>
+  </div>
+
+  <div class="info-box info">
+    <strong>📖 อ้างอิง:</strong> Microsoft <a href="https://learn.microsoft.com/en-us/dotnet/architecture/modern-web-apps-azure/common-web-application-architectures" style="color:#1d4ed8">N-Layer Architecture</a> — ออกแบบสำหรับ Single-Project Monolith API + Dapper
+  </div>
+
+  <table class="criteria-table">
+    <thead><tr><th style="width:50px">#</th><th>เกณฑ์</th><th style="width:70px">ระดับ</th></tr></thead>
+    <tbody>
+      <tr><td class="criteria-id">1.1</td><td>แยกโฟลเดอร์ <strong>3 Layer</strong> อย่างน้อย: <code>Controllers/</code>, <code>Services/</code>, <code>DataAccess/</code></td><td><span class="tag tag-required">บังคับ</span></td></tr>
+      <tr><td class="criteria-id">1.2</td><td><code>Models/</code> ต้องแยก — มี <code>Entities/</code> สำหรับ DB Mapping และ <code>Requests/</code> สำหรับ Input DTO</td><td><span class="tag tag-required">บังคับ</span></td></tr>
+      <tr><td class="criteria-id">1.3</td><td><code>Services/Interfaces/</code> สำหรับ Service Interface (SOLID — Dependency Inversion)</td><td><span class="tag tag-required">บังคับ</span></td></tr>
+      <tr><td class="criteria-id">1.4</td><td><code>DataAccess/</code> ต้องมี <code>Connections/</code> + <code>Repositories/</code></td><td><span class="tag tag-required">บังคับ</span></td></tr>
+      <tr><td class="criteria-id">1.5</td><td><code>Repositories/Interfaces/</code> สำหรับ Repository Interface — Mock ได้ใน Unit Test</td><td><span class="tag tag-required">บังคับ</span></td></tr>
+      <tr><td class="criteria-id">1.6</td><td><code>Filters/</code> แยก Action Filter — ห้ามวางใน Controller</td><td><span class="tag tag-required">บังคับ</span></td></tr>
+      <tr><td class="criteria-id">1.7</td><td><code>tests/</code> แยกจาก <code>src/</code> — Production build ไม่ compile test</td><td><span class="tag tag-required">บังคับ</span></td></tr>
+      <tr><td class="criteria-id">1.8</td><td><code>.editorconfig</code> ที่ Solution Root — บังคับ Code Style ร่วมกัน</td><td><span class="tag tag-recommended">แนะนำ</span></td></tr>
+      <tr><td class="criteria-id">1.9</td><td><code>SqlQueries/</code> แยก SQL Constants ตาม Feature — ใช้เมื่อ Query มาก</td><td><span class="tag tag-recommended">แนะนำ</span></td></tr>
+      <tr><td class="criteria-id">1.10</td><td><code>Middleware/</code> สำหรับ Custom Middleware — สร้างเมื่อจำเป็น</td><td><span class="tag tag-recommended">แนะนำ</span></td></tr>
+    </tbody>
+  </table>
+
+  <h4 style="color:#1d4ed8; margin: 20px 0 10px;">📁 โครงสร้างอ้างอิง</h4>
+
+  <div class="tree-block">{SolutionName}/
+├── .editorconfig                       ← 🟡 Code Style Rules
+├── {SolutionName}.sln
+├── src/
+│   └── {ProjectName}/
+│       ├── Controllers/
+│       │   ├── {Feature}Controller.cs
+│       │   └── HealthCheckController.cs
+│       ├── Services/
+│       │   ├── Interfaces/
+│       │   │   └── I{Feature}Service.cs
+│       │   └── {Feature}Service.cs
+│       ├── DataAccess/
+│       │   ├── Connections/
+│       │   │   ├── IDbConnectionFactory.cs
+│       │   │   └── DbConnectionFactory.cs
+│       │   ├── Repositories/
+│       │   │   ├── Interfaces/
+│       │   │   │   ├── IBaseRepository.cs
+│       │   │   │   └── I{Feature}Repository.cs
+│       │   │   ├── BaseRepository.cs
+│       │   │   └── {Feature}Repository.cs
+│       │   └── SqlQueries/             ← 🟡 แยกเมื่อ Query มาก
+│       │       └── {Feature}Queries.cs
+│       ├── Models/
+│       │   ├── Entities/               ← DB Mapping
+│       │   ├── Requests/               ← Input DTOs
+│       │   ├── {Feature}Model.cs
+│       │   └── ResultModel.cs
+│       ├── Filters/
+│       │   ├── LogFilter.cs
+│       │   └── AvailableFilter.cs
+│       ├── Program.cs
+│       └── appsettings.json
+└── tests/
+    ├── UnitTest/
+    └── IntegrationTest/</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     §2 — NAMING CONVENTION
+     ═══════════════════════════════════════════════════════ -->
+<section class="section section-anchor" id="s2">
+  <div class="section-header">
+    <div class="section-num required">2</div>
+    <div class="section-title">Naming Convention <small>หลักการตั้งชื่อ — 62 เกณฑ์ (ทั้งหมดบังคับ)</small></div>
+  </div>
+
+  <div class="info-box info">
+    <strong>📖 อ้างอิง:</strong> Microsoft <a href="https://learn.microsoft.com/en-us/dotnet/standard/design-guidelines/naming-guidelines" style="color:#1d4ed8">Framework Design Guidelines</a>, <a href="https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/coding-style/identifier-names" style="color:#1d4ed8">C# Identifier Rules</a>, <a href="https://google.github.io/styleguide/csharp-style.html" style="color:#1d4ed8">Google C# Style Guide</a>
+  </div>
+
+  <!-- Capitalization Quick Ref -->
+  <div class="quick-ref">
+    <h4>🔤 Capitalization Quick Reference</h4>
+    <div class="col-grid">
+      <div class="col">
+        <h5>PascalCase</h5>
+        <ul>
+          <li>Namespace, Class, Interface (I+)</li>
+          <li>Method, Property, Event</li>
+          <li>Enum Type/Value, Delegate</li>
+          <li>Constant (const / static readonly)</li>
+          <li>Public Field, Record Params</li>
+        </ul>
+      </div>
+      <div class="col">
+        <h5>camelCase</h5>
+        <ul>
+          <li>Parameter</li>
+          <li>Local Variable</li>
+          <li>Lambda Parameter</li>
+          <li>Primary Constructor Param (class)</li>
+        </ul>
+      </div>
+      <div class="col">
+        <h5>_camelCase</h5>
+        <ul>
+          <li>Private Field</li>
+          <li>Static Private Field</li>
+          <li style="margin-top:8px;" class="dont">❌ ห้าม UPPER_SNAKE_CASE</li>
+          <li class="dont">❌ ห้าม Hungarian (strName)</li>
+          <li class="dont">❌ ห้าม m_ / s_ prefix</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Project-Specific Naming -->
+  <h4 style="color:#7c3aed; margin: 20px 0 10px;">🏗️ ASP.NET Core API Naming</h4>
+  <table class="criteria-table">
+    <thead><tr><th>หมวด</th><th>รูปแบบ</th><th>✅ ตัวอย่างถูก</th><th>❌ ตัวอย่างผิด</th></tr></thead>
+    <tbody>
+      <tr><td>Controller</td><td><code>{Feature}Controller</code></td><td>CustomerController</td><td>RegCtrl, CustCtrl</td></tr>
+      <tr><td>Service</td><td><code>I{Feature}Service / {Feature}Service</code></td><td>ICustomerService</td><td>CustSvc, RegBL</td></tr>
+      <tr><td>Repository</td><td><code>I{Feature}Repository / {Feature}Repository</code></td><td>CustomerRepository</td><td>CustRepo, DAL1</td></tr>
+      <tr><td>Entity</td><td><code>{Name}Entity</code></td><td>CustomerEntity</td><td>tbl_customer</td></tr>
+      <tr><td>Request</td><td><code>{Action}{Feature}Request</code></td><td>CreateCustomerRequest</td><td>ReqReg</td></tr>
+      <tr><td>Response</td><td><code>{Feature}Response</code></td><td>CustomerResponse</td><td>RespCust</td></tr>
+      <tr><td>Constant</td><td><strong>PascalCase</strong></td><td>MaxRetryCount</td><td>MAX_RETRY_COUNT</td></tr>
+      <tr><td>Private Field</td><td><code>_camelCase</code></td><td>_customerRepository</td><td>m_config, configuration</td></tr>
+      <tr><td>Async Method</td><td><code>Verb + Async</code></td><td>GetCustomerAsync()</td><td>GetCustomer() → Task</td></tr>
+      <tr><td>Boolean Prop</td><td><code>Is/Has/Can + Adj</code></td><td>IsActive, HasPermission</td><td>Active, Flag</td></tr>
+    </tbody>
+  </table>
+
+  <!-- Anti-Patterns -->
+  <h4 style="color:#dc2626; margin: 20px 0 10px;">🚫 Anti-Patterns — สิ่งที่ห้ามเด็ดขาด</h4>
+  <div class="anti-pattern">
+    <div class="anti-bad">
+      <span class="anti-label">❌ ห้ามทำ</span>
+strName, intCount, bIsValid<br>
+MAX_RETRY_COUNT, DEFAULT_TIMEOUT<br>
+CCustomer, CustomerClass, enumStatus<br>
+tbl_customer, sp_GetData<br>
+Data1, Model2, temp1<br>
+CustRepo, TxnSvc, AcctMgr<br>
+getCustomer(), Get_Customer()
+    </div>
+    <div class="anti-good">
+      <span class="anti-label">✅ ควรเป็น</span>
+name, count, isValid<br>
+MaxRetryCount, DefaultTimeout<br>
+Customer, Status<br>
+CustomerEntity, GetDataAsync()<br>
+ใช้ชื่อที่สื่อความหมาย<br>
+CustomerRepository, TransactionService<br>
+GetCustomer()
+    </div>
+  </div>
+
+  <!-- File Rules -->
+  <div class="info-box warn">
+    <strong>📁 File Rules:</strong> 1 File = 1 Type · ชื่อไฟล์ PascalCase = Class Name · File-Scoped Namespace (C# 10+) · using อยู่นอก namespace เรียง alphabetical (System.* ก่อน)
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     §3 — DATA ACCESS LAYER
+     ═══════════════════════════════════════════════════════ -->
+<section class="section section-anchor" id="s3">
+  <div class="section-header">
+    <div class="section-num required">3</div>
+    <div class="section-title">DataAccess Layer <small>Dapper + Repository Pattern — 38 เกณฑ์ (ทั้งหมดบังคับ)</small></div>
+  </div>
+
+  <div class="info-box danger">
+    <strong>⚠️ Dapper เป็น Micro-ORM เดียวที่อนุญาต</strong> — ห้ามใช้ EF Core, NHibernate หรือ ORM อื่น · Performance ≤5% gap จาก ADO.NET · Code กระชับกว่า 5-10 เท่า
+  </div>
+
+  <!-- Data Access Pattern -->
+  <h4 style="color:#1d4ed8; margin: 20px 0 10px;">📦 Data Access Pattern</h4>
+  <table class="criteria-table">
+    <thead><tr><th style="width:50px">#</th><th>เกณฑ์</th></tr></thead>
+    <tbody>
+      <tr><td class="criteria-id">3.1</td><td>ใช้ <strong>Dapper</strong> เท่านั้น — ห้ามใช้ ORM อื่น (EF Core, NHibernate)</td></tr>
+      <tr><td class="criteria-id">3.2</td><td>ใช้ <strong>Repository Pattern</strong> — ห้าม inject IDbConnection เข้า Service ตรง</td></tr>
+      <tr><td class="criteria-id">3.3</td><td>มี <strong>IDbConnectionFactory</strong> — ห้าม <code>new SqlConnection()</code> ตรงใน Repository</td></tr>
+      <tr><td class="criteria-id">3.4</td><td>มี <strong>BaseRepository</strong> เป็น Generic Base Class wrap Dapper methods</td></tr>
+    </tbody>
+  </table>
+
+  <!-- SQL Security -->
+  <h4 style="color:#dc2626; margin: 20px 0 10px;">🛡️ SQL Security & Management</h4>
+  <table class="criteria-table">
+    <thead><tr><th style="width:50px">#</th><th>เกณฑ์</th><th style="width:90px">Security</th></tr></thead>
+    <tbody>
+      <tr><td class="criteria-id">3.6</td><td><strong>ห้าม String Interpolation ใน SQL</strong> — ต้องใช้ <code>@parameter</code> เสมอ</td><td><span class="tag tag-cwe">CWE-89</span></td></tr>
+      <tr><td class="criteria-id">3.10</td><td>Connection ต้องปิดด้วย <strong><code>using</code></strong> เสมอ</td><td><span class="tag tag-cwe">CWE-404</span></td></tr>
+      <tr><td class="criteria-id">3.11</td><td><strong>ห้าม <code>SELECT *</code></strong> — ระบุ Column ที่ต้องการเท่านั้น</td><td><span class="tag tag-cwe">CWE-200</span></td></tr>
+      <tr><td class="criteria-id">3.15</td><td><strong>ห้าม <code>.Result</code> / <code>.Wait()</code></strong> — ต้อง <code>await</code> เสมอ</td><td><span class="tag tag-cwe">CWE-833</span></td></tr>
+      <tr><td class="criteria-id">3.21</td><td>Connection String <strong>ห้ามอยู่ใน Source Code</strong> — ใช้ appsettings/Vault</td><td><span class="tag tag-cwe">CWE-798</span></td></tr>
+      <tr><td class="criteria-id">3.23</td><td><strong><code>Encrypt=True; TrustServerCertificate=False</code></strong> สำหรับ Production</td><td><span class="tag tag-cwe">CWE-311</span></td></tr>
+      <tr><td class="criteria-id">3.26</td><td>Database Account = <strong>Least Privilege</strong> — ห้ามใช้ <code>sa</code> / <code>db_owner</code></td><td><span class="tag tag-cwe">CWE-250</span></td></tr>
+    </tbody>
+  </table>
+
+  <!-- Async & Resilience -->
+  <h4 style="color:#059669; margin: 20px 0 10px;">🔄 Async & Resilience</h4>
+  <table class="criteria-table">
+    <thead><tr><th style="width:50px">#</th><th>เกณฑ์</th></tr></thead>
+    <tbody>
+      <tr><td class="criteria-id">3.12</td><td>ทุก Repository method = <strong><code>async Task&lt;T&gt;</code></strong></td></tr>
+      <tr><td class="criteria-id">3.13</td><td>ทุก async ต้องรับ <strong><code>CancellationToken</code></strong> เป็น parameter สุดท้าย</td></tr>
+      <tr><td class="criteria-id">3.14</td><td>ส่ง CT ผ่าน <strong><code>CommandDefinition</code></strong> (Dapper ไม่รับ CT โดยตรง)</td></tr>
+      <tr><td class="criteria-id">3.18</td><td><strong>Retry Policy</strong> (Polly) — Exponential Backoff 1s→2s→4s, max 3 ครั้ง</td></tr>
+      <tr><td class="criteria-id">3.27</td><td>ทุก INSERT/UPDATE/DELETE ต้องมี <strong>Audit Log</strong> — Who/What/When</td></tr>
+    </tbody>
+  </table>
+
+  <div class="info-box tip">
+    <strong>💡 Compliance:</strong> ครอบคลุม <strong>11 CWE IDs</strong> (4 จาก Top 25) · <strong>5 OWASP ASVS 5.0</strong> requirements · <strong>8 NIST 800-53</strong> controls · <strong>5 ISO 27001:2022</strong> Annex A
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     §4 — SERVICE LAYER
+     ═══════════════════════════════════════════════════════ -->
+<section class="section section-anchor" id="s4">
+  <div class="section-header">
+    <div class="section-num required">4</div>
+    <div class="section-title">Service Layer <small>ชั้น Business Logic — 8 เกณฑ์ (ทั้งหมดบังคับ)</small></div>
+  </div>
+
+  <table class="criteria-table">
+    <thead><tr><th style="width:50px">#</th><th>เกณฑ์</th><th style="width:200px">ถ้าไม่ทำ → เกิดอะไร</th></tr></thead>
+    <tbody>
+      <tr><td class="criteria-id">4.1</td><td>ทุก Service <strong>ต้องมี Interface</strong> ใน <code>Services/Interfaces/</code></td><td>DI/Mock ไม่ได้ → test ไม่ได้</td></tr>
+      <tr><td class="criteria-id">4.2</td><td><strong>Constructor Injection</strong> เท่านั้น — ห้าม <code>new</code> dependency</td><td>Coupling แน่น → test ยาก</td></tr>
+      <tr><td class="criteria-id">4.3</td><td>ใช้ <strong>IRepository</strong> เข้าถึง DB — ห้ามใช้ IDbConnection ตรง</td><td>SQL กระจาย → maintain ลำบาก</td></tr>
+      <tr><td class="criteria-id">4.4</td><td><strong>async + CancellationToken</strong> ทุก I/O method → ส่งต่อถึง Repository</td><td>Thread block → server รับ load ไม่ได้</td></tr>
+      <tr><td class="criteria-id">4.5</td><td><strong>Guard Clause</strong> (null/empty check) ต้นเมธอด ก่อน Business Logic</td><td>NullReferenceException crash</td></tr>
+      <tr><td class="criteria-id">4.6</td><td><strong>try-catch + Structured Logging</strong> — return ResultModel, ห้าม leak exception</td><td>Error หลุดถึง client = security risk</td></tr>
+      <tr><td class="criteria-id">4.7</td><td>Return <strong>Response DTO</strong> — ห้าม return Entity ตรง</td><td>Client เห็น DB column ทั้งหมด = data leak</td></tr>
+      <tr><td class="criteria-id">4.8</td><td>ห้าม <strong>Hard-coded value</strong> — ค่า config มาจาก IOptions&lt;T&gt;</td><td>Deploy ต้องแก้ code + build ใหม่</td></tr>
+    </tbody>
+  </table>
+
+  <div class="info-box tip">
+    <strong>💡 Defense-in-Depth:</strong> Guard Clause (§4.5) = defensive check ใน Service · Primary Validation = FluentValidation ที่ Controller Level (§15) · ทั้งสองทำงานร่วมกันตาม OWASP Input Validation Cheat Sheet
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     §5 — CONTROLLER LAYER
+     ═══════════════════════════════════════════════════════ -->
+<section class="section section-anchor" id="s5">
+  <div class="section-header">
+    <div class="section-num required">5</div>
+    <div class="section-title">Controller Layer <small>ชั้น API Endpoint — 8 เกณฑ์ (ทั้งหมดบังคับ)</small></div>
+  </div>
+
+  <table class="criteria-table">
+    <thead><tr><th style="width:50px">#</th><th>เกณฑ์</th><th style="width:200px">ถ้าไม่ทำ → เกิดอะไร</th></tr></thead>
+    <tbody>
+      <tr><td class="criteria-id">5.1</td><td>สืบทอดจาก <strong><code>ControllerBase</code></strong> (ไม่ใช่ Controller)</td><td>ได้ View support ที่ไม่จำเป็น</td></tr>
+      <tr><td class="criteria-id">5.2</td><td>Attribute: <strong><code>[ApiController]</code>, <code>[Route]</code>, <code>[Produces("application/json")]</code></strong></td><td>ไม่ได้ auto model validation</td></tr>
+      <tr><td class="criteria-id">5.3</td><td>รับ <strong>IService</strong> ผ่าน Constructor — <strong>ห้ามมี Business Logic</strong></td><td>Test ยาก + Reuse ไม่ได้</td></tr>
+      <tr><td class="criteria-id">5.4</td><td>ทุก Endpoint ที่ต้อง Auth ต้องมี <strong><code>[Authorize]</code></strong></td><td>Endpoint เปิด public = security hole</td></tr>
+      <tr><td class="criteria-id">5.5</td><td>ระบุ HTTP Verb: <strong><code>[HttpGet]</code>, <code>[HttpPost]</code>, <code>[HttpPut]</code>, <code>[HttpDelete]</code></strong></td><td>Swagger doc ไม่ถูก + 405 error</td></tr>
+      <tr><td class="criteria-id">5.6</td><td>มี <strong>HealthCheckController</strong> อย่างน้อย 1 endpoint ไม่ต้อง Auth</td><td>K8s probe ไม่ได้ → pod restart ผิด</td></tr>
+      <tr><td class="criteria-id">5.7</td><td>Controller = <strong>รับ → เรียก → ส่ง</strong> (1-3 บรรทัดต่อ action)</td><td>Business logic ปน → SRP ผิด</td></tr>
+      <tr><td class="criteria-id">5.8</td><td>ทุก async Action รับ <strong>CancellationToken</strong> ส่งต่อให้ Service</td><td>Client disconnect → query ยังวิ่ง</td></tr>
+    </tbody>
+  </table>
+
+  <div class="info-box info">
+    <strong>🔗 CancellationToken Chain:</strong> Controller (§5) → Service (§4) → Repository (§3) — ASP.NET Core bind <code>HttpContext.RequestAborted</code> อัตโนมัติ
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     §6 — DEPENDENCY INJECTION
+     ═══════════════════════════════════════════════════════ -->
+<section class="section section-anchor" id="s6">
+  <div class="section-header">
+    <div class="section-num required">6</div>
+    <div class="section-title">Dependency Injection <small>การลงทะเบียน DI — 6 เกณฑ์ (ทั้งหมดบังคับ)</small></div>
+  </div>
+
+  <table class="criteria-table">
+    <thead><tr><th style="width:50px">#</th><th>เกณฑ์</th><th style="width:200px">ถ้าไม่ทำ → เกิดอะไร</th></tr></thead>
+    <tbody>
+      <tr><td class="criteria-id">6.1</td><td>ลงทะเบียน DI ใน <strong><code>Program.cs</code></strong> (Minimal Hosting .NET 10)</td><td>กระจายหลายที่ → หาไม่เจอ</td></tr>
+      <tr><td class="criteria-id">6.2</td><td>จัดกลุ่ม: ① Singleton → ② Scoped (Repo) → ③ Scoped (Service) → ④ Infrastructure</td><td>Code อ่านยาก</td></tr>
+      <tr><td class="criteria-id">6.3</td><td>IDbConnectionFactory = <strong>Singleton</strong> (stateless, thread-safe)</td><td>Scoped → สร้างใหม่ทุก request เปลือง</td></tr>
+      <tr><td class="criteria-id">6.4</td><td>Repository / Service = <strong>Scoped</strong> (1 per HTTP Request)</td><td>Singleton → connection share = <strong>race condition</strong></td></tr>
+      <tr><td class="criteria-id">6.5</td><td>ห้าม inject <strong>Scoped เข้า Singleton</strong> (Captive Dependency)</td><td>Scoped อยู่นานกว่าควร → stale data</td></tr>
+      <tr><td class="criteria-id">6.6</td><td>ทุก Interface→Implementation ลงทะเบียนครบ — ห้ามมี <code>new</code> ในโค้ด</td><td>Runtime throw InvalidOperationException</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     §7 — AUTHENTICATION
+     ═══════════════════════════════════════════════════════ -->
+<section class="section section-anchor" id="s7">
+  <div class="section-header">
+    <div class="section-num required">7</div>
+    <div class="section-title">Authentication & Authorization <small>6 เกณฑ์ (ทั้งหมดบังคับ)</small></div>
+  </div>
+
+  <table class="criteria-table">
+    <thead><tr><th style="width:50px">#</th><th>เกณฑ์</th><th style="width:200px">ถ้าไม่ทำ → เกิดอะไร</th></tr></thead>
+    <tbody>
+      <tr><td class="criteria-id">7.1</td><td>ใช้ <strong>JWT Bearer Token</strong> เป็น Authentication Scheme</td><td>Endpoint เปิดรับทุกคน</td></tr>
+      <tr><td class="criteria-id">7.2</td><td>JWT Config ใน <code>appsettings.json</code> — ห้าม Hard-code</td><td>Secret leak ใน source</td></tr>
+      <tr><td class="criteria-id">7.3</td><td>ValidateIssuer, ValidateAudience, ValidateLifetime, ValidateIssuerSigningKey = <strong>true</strong></td><td>Token ปลอมจาก issuer อื่นผ่านได้</td></tr>
+      <tr><td class="criteria-id">7.4</td><td>RequireExpirationTime = true, <strong>ClockSkew = TimeSpan.Zero</strong></td><td>Token หมดอายุยังใช้ได้ 5 นาที</td></tr>
+      <tr><td class="criteria-id">7.5</td><td>Middleware: <code>UseAuthentication()</code> → <code>UseAuthorization()</code></td><td>สลับลำดับ → authorize fail ทุก request</td></tr>
+      <tr><td class="criteria-id">7.6</td><td>ทุก endpoint ที่ต้อง Auth ต้องมี <code>[Authorize]</code></td><td>Unauthorized access</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     §8 — ERROR HANDLING
+     ═══════════════════════════════════════════════════════ -->
+<section class="section section-anchor" id="s8">
+  <div class="section-header">
+    <div class="section-num required">8</div>
+    <div class="section-title">Error Handling & Logging <small>7 เกณฑ์ (ทั้งหมดบังคับ)</small></div>
+  </div>
+
+  <table class="criteria-table">
+    <thead><tr><th style="width:50px">#</th><th>เกณฑ์</th><th style="width:200px">ถ้าไม่ทำ → เกิดอะไร</th></tr></thead>
+    <tbody>
+      <tr><td class="criteria-id">8.1</td><td>ทุก Service Method ต้องมี <strong>try-catch</strong> ครอบ Business Logic</td><td>500 ไม่มี context</td></tr>
+      <tr><td class="criteria-id">8.2</td><td>catch = <strong>Log Error + Context</strong> (Method Name, Parameters)</td><td>Debug ไม่ได้</td></tr>
+      <tr><td class="criteria-id">8.3</td><td>ห้าม <code>catch { throw; }</code> เปล่า — ต้อง Log ก่อน</td><td>Error ไม่ถูก log → สูญเสีย evidence</td></tr>
+      <tr><td class="criteria-id">8.4</td><td>ใช้ <strong><code>ILogger&lt;T&gt;</code></strong> via DI — ห้าม <code>Console.WriteLine</code></td><td>Production ไม่เห็น output</td></tr>
+      <tr><td class="criteria-id">8.5</td><td>Error Response โครงสร้างเดียว: <code>Status, IsSuccess, Message</code></td><td>Client parse ยาก</td></tr>
+      <tr><td class="criteria-id">8.6</td><td><strong>ห้าม return Exception/StackTrace</strong> ให้ Client</td><td>Leak internal structure = <strong>security risk</strong></td></tr>
+      <tr><td class="criteria-id">8.7</td><td>ใช้ <strong>LogFilter</strong> (Action Filter) auto log ทุก Request/Response</td><td>Debug production ลำบาก</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     §9 — CONFIGURATION
+     ═══════════════════════════════════════════════════════ -->
+<section class="section section-anchor" id="s9">
+  <div class="section-header">
+    <div class="section-num required">9</div>
+    <div class="section-title">Configuration Management <small>6 เกณฑ์ (ทั้งหมดบังคับ)</small></div>
+  </div>
+
+  <table class="criteria-table">
+    <thead><tr><th style="width:50px">#</th><th>เกณฑ์</th><th style="width:200px">ถ้าไม่ทำ → เกิดอะไร</th></tr></thead>
+    <tbody>
+      <tr><td class="criteria-id">9.1</td><td><code>appsettings.json</code> เป็น <strong>Base Configuration</strong></td><td>ตั้งค่าซ้ำทุก environment</td></tr>
+      <tr><td class="criteria-id">9.2</td><td>อย่างน้อย <strong>3 Environment</strong>: Development, UAT, Production</td><td>Dev ต่อ prod DB = data corruption</td></tr>
+      <tr><td class="criteria-id">9.3</td><td>Connection String ใน <code>appsettings.{Env}.json</code> — ห้าม Hard-code</td><td>เปลี่ยน server ต้อง rebuild</td></tr>
+      <tr><td class="criteria-id">9.4</td><td><strong>Secret/Password ห้ามอยู่ใน Source Code</strong> หรือ appsettings ที่ commit</td><td>Credential leak</td></tr>
+      <tr><td class="criteria-id">9.5</td><td>อ่าน config ผ่าน <strong><code>IConfiguration</code></strong> หรือ <strong><code>IOptions&lt;T&gt;</code></strong> via DI</td><td>Hard-code → maintain ลำบาก</td></tr>
+      <tr><td class="criteria-id">9.6</td><td>ข้อความ Message Response ใน Configuration — ห้าม Hard-code</td><td>เปลี่ยนข้อความต้อง rebuild</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     §10 — API DOCUMENTATION
+     ═══════════════════════════════════════════════════════ -->
+<section class="section section-anchor" id="s10">
+  <div class="section-header">
+    <div class="section-num recommended">10</div>
+    <div class="section-title">API Documentation (OpenAPI) <small>5 เกณฑ์ (ทั้งหมดแนะนำ)</small></div>
+  </div>
+
+  <div class="info-box warn">
+    <strong>⚠️ Swashbuckle ถูกลบออกจาก .NET 9+</strong> — ใช้ <code>Microsoft.AspNetCore.OpenApi</code> แทน: <code>AddOpenApi()</code> + <code>MapOpenApi()</code>
+  </div>
+
+  <table class="criteria-table">
+    <thead><tr><th style="width:50px">#</th><th>เกณฑ์</th></tr></thead>
+    <tbody>
+      <tr><td class="criteria-id">10.1</td><td>เปิดใช้ <strong>OpenAPI</strong> (<code>AddOpenApi()</code> + <code>MapOpenApi()</code>)</td></tr>
+      <tr><td class="criteria-id">10.2</td><td>OpenAPI Doc ต้องมี <strong>Title</strong> และ <strong>Version</strong></td></tr>
+      <tr><td class="criteria-id">10.3</td><td><strong>Security Definition</strong> สำหรับ Bearer Token</td></tr>
+      <tr><td class="criteria-id">10.4</td><td>เปิดใช้ <strong>XML Comments</strong> สำหรับ documentation</td></tr>
+      <tr><td class="criteria-id">10.5</td><td>ทุก Public Action ควรมี <code>/// &lt;summary&gt;</code> XML Comment</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     §11 — CODE QUALITY
+     ═══════════════════════════════════════════════════════ -->
+<section class="section section-anchor" id="s11">
+  <div class="section-header">
+    <div class="section-num recommended">11</div>
+    <div class="section-title">Code Quality & Review Checklist <small>10 เกณฑ์ (ทั้งหมดแนะนำ)</small></div>
+  </div>
+
+  <table class="criteria-table">
+    <thead><tr><th style="width:50px">#</th><th>เกณฑ์</th></tr></thead>
+    <tbody>
+      <tr><td class="criteria-id">11.1</td><td>ห้ามมี <strong>unused using statements</strong></td></tr>
+      <tr><td class="criteria-id">11.2</td><td>ห้ามมี <strong>commented-out code</strong> — ลบออก ไม่ใช่ comment</td></tr>
+      <tr><td class="criteria-id">11.3</td><td>ห้ามมี <code>TODO / HACK / FIXME</code> ค้างใน Production Branch</td></tr>
+      <tr><td class="criteria-id">11.4</td><td>ทุก Public Method ใน Service Interface ต้องมี <strong>XML Comment</strong></td></tr>
+      <tr><td class="criteria-id">11.5</td><td>ไม่มีการ <code>new</code> Service/Repository/Connection ในโค้ด — ใช้ DI (§4.2, §6.6)</td></tr>
+      <tr><td class="criteria-id">11.6</td><td>ไม่มี <strong>Magic Number / Magic String</strong> — ใช้ Constant/Config (§4.8)</td></tr>
+      <tr><td class="criteria-id">11.7</td><td>ไม่มี Business Logic ใน Controller (§5.3, §5.7)</td></tr>
+      <tr><td class="criteria-id">11.8</td><td>ไม่มี DB Access ใน Controller — ผ่าน Service (§5.3)</td></tr>
+      <tr><td class="criteria-id">11.9</td><td>ไม่ return Entity ออกจาก Service — Map เป็น DTO (§4.7)</td></tr>
+      <tr><td class="criteria-id">11.10</td><td>Merge ต้องผ่าน <strong>Code Review ≥ 1 คน</strong></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     §12 — TESTING STANDARDS
+     ═══════════════════════════════════════════════════════ -->
+<section class="section section-anchor" id="s12">
+  <div class="section-header">
+    <div class="section-num required">12</div>
+    <div class="section-title">Testing Standards <small>มาตรฐานการทดสอบ — 15 เกณฑ์ (ทั้งหมดบังคับ)</small></div>
+  </div>
+
+  <table class="criteria-table">
+    <thead><tr><th style="width:50px">#</th><th>เกณฑ์</th><th style="width:200px">ถ้าไม่ทำ → เกิดอะไร</th></tr></thead>
+    <tbody>
+      <tr><td class="criteria-id">12.1</td><td>ทุก Service Class ต้องมี <strong>Unit Test</strong> — ≥ 1 test/public method</td><td>Refactor แล้วพัง ไม่มีใครรู้</td></tr>
+      <tr><td class="criteria-id">12.2</td><td>Framework: <strong>xUnit</strong> — ห้ามใช้ MSTest/NUnit ในโปรเจคใหม่</td><td>Config ยุ่ง</td></tr>
+      <tr><td class="criteria-id">12.3</td><td>Mocking: <strong>Moq</strong> หรือ <strong>NSubstitute</strong></td><td>Mock ด้วยมือ = boilerplate</td></tr>
+      <tr><td class="criteria-id">12.5</td><td>Test Project ใน <code>tests/</code> แยกจาก <code>src/</code></td><td>Test compile เข้า production</td></tr>
+      <tr><td class="criteria-id">12.8</td><td>Method Naming: <strong><code>{Method}_{Scenario}_{Expected}</code></strong></td><td>Test fail แล้วไม่รู้อะไรพัง</td></tr>
+      <tr><td class="criteria-id">12.9</td><td><strong>AAA Pattern:</strong> Arrange → Act → Assert (แยก section ชัดเจน)</td><td>Test อ่านยาก</td></tr>
+      <tr><td class="criteria-id">12.10</td><td>ห้าม DB จริงใน Unit Test — ใช้ <strong>Mock Repository</strong></td><td>Test ช้า + flaky</td></tr>
+      <tr><td class="criteria-id">12.11</td><td>Coverage ≥ <strong>80% Service</strong>, ≥ <strong>60% Overall</strong></td><td>ไม่ครอบคลุม edge case</td></tr>
+      <tr><td class="criteria-id">12.12</td><td>Test รัน <strong>อัตโนมัติใน CI</strong> ก่อน Merge — fail = ห้าม merge</td><td>Bug เข้า main</td></tr>
+      <tr><td class="criteria-id">12.14</td><td>ทุก Bug Fix ต้องมี <strong>Regression Test</strong></td><td>Bug กลับมาพังซ้ำ</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     §13 — API DESIGN
+     ═══════════════════════════════════════════════════════ -->
+<section class="section section-anchor" id="s13">
+  <div class="section-header">
+    <div class="section-num required">13</div>
+    <div class="section-title">API Design & Versioning <small>12 เกณฑ์ (ทั้งหมดบังคับ)</small></div>
+  </div>
+
+  <table class="criteria-table">
+    <thead><tr><th style="width:50px">#</th><th>เกณฑ์</th></tr></thead>
+    <tbody>
+      <tr><td class="criteria-id">13.1</td><td>URL Pattern: <strong><code>/api/v{version}/{resource}</code></strong></td></tr>
+      <tr><td class="criteria-id">13.2</td><td>HTTP Method ตามความหมาย: <code>GET</code> อ่าน, <code>POST</code> สร้าง, <code>PUT</code> แก้ทั้งหมด, <code>DELETE</code> ลบ</td></tr>
+      <tr><td class="criteria-id">13.3</td><td><strong>HTTP Status Code</strong> ตาม RFC 9110 — 200/201/204/400/401/403/404/500</td></tr>
+      <tr><td class="criteria-id">13.4</td><td>Collection ต้อง <strong>Pagination</strong>: pageNumber, pageSize (default 20, max 100)</td></tr>
+      <tr><td class="criteria-id">13.6</td><td><strong>API Versioning</strong> — NuGet: <code>Asp.Versioning.Mvc</code></td></tr>
+      <tr><td class="criteria-id">13.7</td><td>ห้าม <strong>Breaking Change</strong> บน Version เดิม — Deprecate แล้วสร้างใหม่</td></tr>
+      <tr><td class="criteria-id">13.8</td><td>JSON = <strong>camelCase</strong> (System.Text.Json default)</td></tr>
+      <tr><td class="criteria-id">13.9</td><td>Date/Time = <strong>ISO 8601 UTC</strong>: <code>2026-03-05T10:30:00Z</code></td></tr>
+      <tr><td class="criteria-id">13.10</td><td>ห้าม <strong>Verb ใน URL</strong> — ใช้ HTTP Method แทน</td></tr>
+      <tr><td class="criteria-id">13.11</td><td>ทุก Endpoint ต้องมี <strong>strongly-typed DTO</strong></td></tr>
+      <tr><td class="criteria-id">13.12</td><td>POST สร้างทรัพยากร → <strong>Idempotency Key</strong> (FinTech)</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     §14 — CODE FORMATTING
+     ═══════════════════════════════════════════════════════ -->
+<section class="section section-anchor" id="s14">
+  <div class="section-header">
+    <div class="section-num required">14</div>
+    <div class="section-title">Code Formatting & Style <small>10 เกณฑ์ (ทั้งหมดบังคับ)</small></div>
+  </div>
+
+  <table class="criteria-table">
+    <thead><tr><th style="width:50px">#</th><th>เกณฑ์</th></tr></thead>
+    <tbody>
+      <tr><td class="criteria-id">14.1</td><td><strong><code>.editorconfig</code></strong> ใน Solution Root — enforce formatting</td></tr>
+      <tr><td class="criteria-id">14.2</td><td>Indentation: <strong>4 spaces</strong> — ห้าม Tab</td></tr>
+      <tr><td class="criteria-id">14.3</td><td>Column Limit: <strong>120 (soft) / 150 (hard)</strong></td></tr>
+      <tr><td class="criteria-id">14.4</td><td>Brace Style: <strong>Allman</strong> (เปิด <code>{</code> บรรทัดใหม่)</td></tr>
+      <tr><td class="criteria-id">14.5</td><td><strong>Blank line</strong> ระหว่าง methods, logical blocks</td></tr>
+      <tr><td class="criteria-id">14.6</td><td>ห้าม <strong>trailing whitespace</strong> + ไฟล์ลงท้าย newline</td></tr>
+      <tr><td class="criteria-id">14.7</td><td>ใช้ <strong><code>var</code></strong> เมื่อ type ชัดจาก right-hand side</td></tr>
+      <tr><td class="criteria-id">14.8</td><td><strong>Braces เสมอ</strong> แม้ if/for มี statement เดียว</td></tr>
+      <tr><td class="criteria-id">14.9</td><td>ใช้ <strong>expression-bodied <code>=></code></strong> สำหรับ single-line</td></tr>
+      <tr><td class="criteria-id">14.10</td><td>Run <strong><code>dotnet format</code></strong> ก่อนทุก Commit</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     §15 — INPUT VALIDATION
+     ═══════════════════════════════════════════════════════ -->
+<section class="section section-anchor" id="s15">
+  <div class="section-header">
+    <div class="section-num required">15</div>
+    <div class="section-title">Input Validation <small>10 เกณฑ์ (ทั้งหมดบังคับ)</small></div>
+  </div>
+
+  <div class="info-box danger">
+    <strong>🛡️ "Never trust input"</strong> — ทุก input จาก Client เป็น Untrusted จนกว่าจะ Validate · ใช้ <strong>FluentValidation</strong> เป็นหลัก
+  </div>
+
+  <table class="criteria-table">
+    <thead><tr><th style="width:50px">#</th><th>เกณฑ์</th></tr></thead>
+    <tbody>
+      <tr><td class="criteria-id">15.1</td><td>ทุก Request Model ต้องมี Validation — <strong>FluentValidation</strong> (Primary) / DataAnnotations</td></tr>
+      <tr><td class="criteria-id">15.2</td><td>Validate ที่ <strong>Controller Level</strong> ก่อนเข้า Service</td></tr>
+      <tr><td class="criteria-id">15.3</td><td>Validate ครบ: Required, Length, Range, Email, Date, Regex</td></tr>
+      <tr><td class="criteria-id">15.4</td><td>Custom Validation → <strong>Validator Class แยก</strong></td></tr>
+      <tr><td class="criteria-id">15.5</td><td>Validation Error: <code>{ status: 400, errors: [{ field, message }] }</code></td></tr>
+      <tr><td class="criteria-id">15.6</td><td>String ต้อง <strong><code>Trim()</code></strong> whitespace ก่อนใช้</td></tr>
+      <tr><td class="criteria-id">15.7</td><td>ห้ามรับ <strong><code>dynamic</code></strong> / <strong><code>object</code></strong> — ต้อง strongly-typed</td></tr>
+      <tr><td class="criteria-id">15.8</td><td>Pagination: <code>pageSize &gt; 0 && ≤ 100</code>, <code>pageNumber ≥ 1</code></td></tr>
+      <tr><td class="criteria-id">15.9</td><td>Enum ต้อง validate ค่า valid — ป้องกัน arbitrary integer</td></tr>
+      <tr><td class="criteria-id">15.10</td><td>File Upload: extension whitelist, content-type match, size limit</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     §16 — OBSERVABILITY
+     ═══════════════════════════════════════════════════════ -->
+<section class="section section-anchor" id="s16">
+  <div class="section-header">
+    <div class="section-num required">16</div>
+    <div class="section-title">Observability & Monitoring <small>10 เกณฑ์ (ทั้งหมดบังคับ)</small></div>
+  </div>
+
+  <table class="criteria-table">
+    <thead><tr><th style="width:50px">#</th><th>เกณฑ์</th></tr></thead>
+    <tbody>
+      <tr><td class="criteria-id">16.1</td><td><strong>Structured Logging</strong>: Timestamp, CorrelationId, Level, Message, Properties · ห้าม string concat</td></tr>
+      <tr><td class="criteria-id">16.2</td><td>ทุก Request ต้องมี <strong>CorrelationId</strong> — generate UUID ถ้าไม่มีใน Header</td></tr>
+      <tr><td class="criteria-id">16.3</td><td><strong>Log Levels</strong> ถูกต้อง: Trace→Debug→Info→Warning→Error→Critical</td></tr>
+      <tr><td class="criteria-id">16.4</td><td>ห้าม Log <strong>PII/Sensitive</strong>: Password, Token, CardNumber, NationalId</td></tr>
+      <tr><td class="criteria-id">16.5</td><td><strong>Distributed Tracing</strong> — OpenTelemetry หรือ Application Insights</td></tr>
+      <tr><td class="criteria-id">16.6</td><td><strong>Health Check</strong>: Self (liveness), DB (readiness), External Dependencies</td></tr>
+      <tr><td class="criteria-id">16.7</td><td>Log ทุก <strong>Outbound HTTP Call</strong>: URL, Method, StatusCode, Duration</td></tr>
+      <tr><td class="criteria-id">16.8</td><td>Production Log Format = <strong>JSON</strong> (ELK/Seq/Loki parse ได้)</td></tr>
+      <tr><td class="criteria-id">16.9</td><td>Critical Error ต้องมี <strong>Alert mechanism</strong></td></tr>
+      <tr><td class="criteria-id">16.10</td><td><strong>Metrics Endpoint</strong> (<code>/metrics</code>): P50/P95/P99, Error Rate, Throughput</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     §17 — PERFORMANCE
+     ═══════════════════════════════════════════════════════ -->
+<section class="section section-anchor" id="s17">
+  <div class="section-header">
+    <div class="section-num required">17</div>
+    <div class="section-title">Performance Standards <small>10 เกณฑ์ (ทั้งหมดบังคับ)</small></div>
+  </div>
+
+  <table class="criteria-table">
+    <thead><tr><th style="width:50px">#</th><th>เกณฑ์</th><th style="width:200px">ถ้าไม่ทำ → เกิดอะไร</th></tr></thead>
+    <tbody>
+      <tr><td class="criteria-id">17.1</td><td>Response Time: <strong>P95 ≤ 500ms</strong> (CRUD), P95 ≤ 2s (Report)</td><td>User experience แย่ + timeout</td></tr>
+      <tr><td class="criteria-id">17.2</td><td>ห้าม <strong>N+1 Query</strong> — ใช้ JOIN, Batch, Multi-Mapping</td><td>Query 100 รอบแทน 1 รอบ</td></tr>
+      <tr><td class="criteria-id">17.3</td><td>ทุก Query ต้อง <strong>ใช้ Index</strong> — ห้าม Full Table Scan (≥10K rows)</td><td>Query ช้าตาม data size</td></tr>
+      <tr><td class="criteria-id">17.4</td><td>Payload ≤ <strong>1 MB</strong> — ใช้ Pagination</td><td>Bandwidth + memory spike</td></tr>
+      <tr><td class="criteria-id">17.5</td><td><strong>Async/Await</strong> ตลอด pipeline — ห้าม Sync-over-Async</td><td>Server รับ load ไม่ได้</td></tr>
+      <tr><td class="criteria-id">17.6</td><td>ห้าม <code>.Result</code>, <code>.Wait()</code>, <code>.GetAwaiter().GetResult()</code></td><td>Deadlock + ThreadPool starvation</td></tr>
+      <tr><td class="criteria-id">17.7</td><td><strong>Dispose</strong> IDisposable ด้วย <code>using</code> เสมอ</td><td>Memory leak</td></tr>
+      <tr><td class="criteria-id">17.8</td><td>String ใน loop (&gt;5 concat) → <strong>StringBuilder</strong></td><td>O(n²) memory allocation</td></tr>
+      <tr><td class="criteria-id">17.9</td><td>Config/Static data ต้อง <strong>Cache</strong></td><td>DB load สูงเกิน</td></tr>
+      <tr><td class="criteria-id">17.10</td><td>ห้าม return <code>IQueryable&lt;T&gt;</code> — Materialize ก่อน</td><td>Query ไม่ถูก execute</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     §18 — HTTP CLIENT
+     ═══════════════════════════════════════════════════════ -->
+<section class="section section-anchor" id="s18">
+  <div class="section-header">
+    <div class="section-num required">18</div>
+    <div class="section-title">HTTP Client Standards <small>การเรียก API ภายนอก — 10 เกณฑ์ (ทั้งหมดบังคับ)</small></div>
+  </div>
+
+  <table class="criteria-table">
+    <thead><tr><th style="width:50px">#</th><th>เกณฑ์</th><th style="width:200px">ถ้าไม่ทำ → เกิดอะไร</th></tr></thead>
+    <tbody>
+      <tr><td class="criteria-id">18.1</td><td>ใช้ <strong><code>IHttpClientFactory</code></strong> — ห้าม <code>new HttpClient()</code></td><td>Socket Exhaustion + DNS stale</td></tr>
+      <tr><td class="criteria-id">18.2</td><td>Named/Typed HttpClient ใน DI</td><td>Config กระจาย</td></tr>
+      <tr><td class="criteria-id">18.3</td><td><strong>Timeout</strong> ทุก HttpClient — default 30s</td><td>Request ค้าง → thread leak</td></tr>
+      <tr><td class="criteria-id">18.4</td><td><strong>Retry Policy</strong> (Polly) สำหรับ 408/429/5xx</td><td>Transient error → fail ทั้งที่ retry สำเร็จ</td></tr>
+      <tr><td class="criteria-id">18.5</td><td>Exponential Backoff: max 3 ครั้ง, 1s→2s→4s</td><td>Retry ทันที → flood target</td></tr>
+      <tr><td class="criteria-id">18.6</td><td><strong>Circuit Breaker</strong> — break after 5 failures/30s</td><td>Cascading failure</td></tr>
+      <tr><td class="criteria-id">18.7</td><td>Log ทุก Outbound: URL, Method, StatusCode, Duration</td><td>Debug ไม่ได้</td></tr>
+      <tr><td class="criteria-id">18.8</td><td>ส่ง <strong><code>X-Correlation-Id</code></strong> ทุก outbound request</td><td>Trace ข้าม service ไม่ได้</td></tr>
+      <tr><td class="criteria-id">18.9</td><td>Response → <strong>strongly-typed Model</strong> — ห้าม dynamic/JObject</td><td>Runtime error</td></tr>
+      <tr><td class="criteria-id">18.10</td><td>ห้าม HttpClient ใน Singleton ไม่ผ่าน Factory</td><td>Socket ไม่ recycle</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     §19 — DEPENDENCY MANAGEMENT
+     ═══════════════════════════════════════════════════════ -->
+<section class="section section-anchor" id="s19">
+  <div class="section-header">
+    <div class="section-num required">19</div>
+    <div class="section-title">Dependency Management <small>NuGet Package — 8 เกณฑ์ (ทั้งหมดบังคับ)</small></div>
+  </div>
+
+  <table class="criteria-table">
+    <thead><tr><th style="width:50px">#</th><th>เกณฑ์</th></tr></thead>
+    <tbody>
+      <tr><td class="criteria-id">19.1</td><td><strong>Pin exact version</strong> — ห้าม floating version (<code>*</code>, <code>1.*</code>)</td></tr>
+      <tr><td class="criteria-id">19.2</td><td><strong>Approved Package List</strong> — ห้ามเพิ่ม Package ใหม่ไม่ผ่าน Review</td></tr>
+      <tr><td class="criteria-id">19.3</td><td>ห้าม Deprecated / Unmaintained (&gt;2 ปี)</td></tr>
+      <tr><td class="criteria-id">19.4</td><td><strong>สแกน CVE</strong> ก่อน Release: <code>dotnet list package --vulnerable</code></td></tr>
+      <tr><td class="criteria-id">19.5</td><td>ห้ามมี <strong>Critical/High CVE</strong> ใน Production</td></tr>
+      <tr><td class="criteria-id">19.6</td><td>License ต้อง Compatible — อนุญาต: MIT, Apache 2.0, BSD · ห้าม: GPL</td></tr>
+      <tr><td class="criteria-id">19.7</td><td>Update อย่างน้อย <strong>ทุก Quarter</strong></td></tr>
+      <tr><td class="criteria-id">19.8</td><td>ห้าม Package ที่ทำหน้าที่ซ้ำ (เช่น Newtonsoft.Json + System.Text.Json)</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     §20 — CODE COMPLEXITY
+     ═══════════════════════════════════════════════════════ -->
+<section class="section section-anchor" id="s20">
+  <div class="section-header">
+    <div class="section-num required">20</div>
+    <div class="section-title">Code Complexity Metrics <small>6 เกณฑ์ (ทั้งหมดบังคับ)</small></div>
+  </div>
+
+  <table class="compare-table">
+    <thead><tr><th>Metric</th><th>⚠️ Warning</th><th>❌ Error (ต้อง Refactor)</th><th>ที่มา</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Cognitive Complexity</strong></td><td>≤ 15</td><td>&gt; 20</td><td>SonarSource S3776</td></tr>
+      <tr><td><strong>Cyclomatic Complexity</strong></td><td>≤ 10</td><td>&gt; 15</td><td>McCabe / NIST</td></tr>
+      <tr><td><strong>Method Length</strong></td><td>≤ 30 บรรทัด</td><td>&gt; 50</td><td>Clean Code</td></tr>
+      <tr><td><strong>Parameters per Method</strong></td><td>≤ 4</td><td>&gt; 6</td><td>SonarQube S107</td></tr>
+      <tr><td><strong>Nesting Depth</strong></td><td>≤ 3</td><td>&gt; 4</td><td>SonarQube S134</td></tr>
+      <tr><td><strong>Class Length</strong></td><td>≤ 300 บรรทัด</td><td>&gt; 500</td><td>Clean Code + SRP</td></tr>
+    </tbody>
+  </table>
+
+  <div class="info-box tip">
+    <strong>🔧 วิธี Refactor:</strong> Method ยาว → Extract Method · Nesting ลึก → Guard Clause / Early Return · Parameters เยอะ → Request DTO · Class ใหญ่ → Extract Service (SRP)
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     §21 — DOCUMENTATION
+     ═══════════════════════════════════════════════════════ -->
+<section class="section section-anchor" id="s21">
+  <div class="section-header">
+    <div class="section-num recommended">21</div>
+    <div class="section-title">Documentation Standards <small>4 เกณฑ์ (ทั้งหมดแนะนำ)</small></div>
+  </div>
+
+  <table class="criteria-table">
+    <thead><tr><th style="width:50px">#</th><th>เกณฑ์</th></tr></thead>
+    <tbody>
+      <tr><td class="criteria-id">21.1</td><td>API Spec ต้อง <strong>auto-generate จาก code</strong> — Swagger/OpenAPI</td></tr>
+      <tr><td class="criteria-id">21.2</td><td>ทุก Action ต้องมี XML Comment: <code>&lt;summary&gt;</code>, <code>&lt;param&gt;</code>, <code>&lt;returns&gt;</code></td></tr>
+      <tr><td class="criteria-id">21.3</td><td>Response Model ต้องมี <strong>Example Value</strong></td></tr>
+      <tr><td class="criteria-id">21.4</td><td>Export <code>openapi.json</code> สำหรับ Postman/REST Client</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     §22 — RESILIENCE
+     ═══════════════════════════════════════════════════════ -->
+<section class="section section-anchor" id="s22">
+  <div class="section-header">
+    <div class="section-num recommended">22</div>
+    <div class="section-title">Resilience & Fault Tolerance <small>8 เกณฑ์ (ทั้งหมดแนะนำ)</small></div>
+  </div>
+
+  <table class="criteria-table">
+    <thead><tr><th style="width:50px">#</th><th>เกณฑ์</th><th style="width:200px">ถ้าไม่ทำ → เกิดอะไร</th></tr></thead>
+    <tbody>
+      <tr><td class="criteria-id">22.1</td><td><strong>Circuit Breaker</strong> สำหรับ External Service</td><td>Service ล่ม → cascading failure</td></tr>
+      <tr><td class="criteria-id">22.2</td><td>CB Config: 5 failures / 30s, Open 30s</td><td>Threshold ไม่เหมาะสม</td></tr>
+      <tr><td class="criteria-id">22.3</td><td><strong>Fallback Strategy</strong> (cached data) สำหรับ non-critical dependency</td><td>User เห็น error แทน cached data</td></tr>
+      <tr><td class="criteria-id">22.4</td><td><strong>Timeout</strong> ทุก external call</td><td>Request ค้าง → thread leak</td></tr>
+      <tr><td class="criteria-id">22.5</td><td><strong>Graceful Shutdown</strong> — รอ in-flight requests</td><td>In-flight request ถูก drop</td></tr>
+      <tr><td class="criteria-id">22.6</td><td><strong>Bulkhead Isolation</strong> — จำกัด concurrent calls</td><td>Service ช้า → กิน thread pool หมด</td></tr>
+      <tr><td class="criteria-id">22.7</td><td>ห้าม Swallow Exception ไม่ Log</td><td>Error หายไป</td></tr>
+      <tr><td class="criteria-id">22.8</td><td><strong>Design for Failure</strong> — Degrade gracefully</td><td>Service ไม่พร้อมรับมือ failure</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     §23 — CONCURRENCY
+     ═══════════════════════════════════════════════════════ -->
+<section class="section section-anchor" id="s23">
+  <div class="section-header">
+    <div class="section-num recommended">23</div>
+    <div class="section-title">Concurrency & Thread Safety <small>6 เกณฑ์ (ทั้งหมดแนะนำ)</small></div>
+  </div>
+
+  <table class="criteria-table">
+    <thead><tr><th style="width:50px">#</th><th>เกณฑ์</th></tr></thead>
+    <tbody>
+      <tr><td class="criteria-id">23.1</td><td>Shared Mutable State → <code>lock</code>, <code>SemaphoreSlim</code>, หรือ <code>ConcurrentCollection</code></td></tr>
+      <tr><td class="criteria-id">23.2</td><td>ใช้ <strong><code>ConcurrentDictionary</code></strong> แทน Dictionary + lock</td></tr>
+      <tr><td class="criteria-id">23.3</td><td>ห้าม <code>lock</code> กับ async — ใช้ <strong><code>SemaphoreSlim(1,1)</code></strong></td></tr>
+      <tr><td class="criteria-id">23.4</td><td><strong>Singleton Service</strong> ต้อง Thread-safe — ห้ามมี Mutable State</td></tr>
+      <tr><td class="criteria-id">23.5</td><td>ห้าม <code>static</code> mutable fields ใน Web App</td></tr>
+      <tr><td class="criteria-id">23.6</td><td>ใช้ <strong><code>Channel&lt;T&gt;</code></strong> สำหรับ Producer-Consumer</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     §24 — CACHING
+     ═══════════════════════════════════════════════════════ -->
+<section class="section section-anchor" id="s24">
+  <div class="section-header">
+    <div class="section-num recommended">24</div>
+    <div class="section-title">Caching Standards <small>8 เกณฑ์ (ทั้งหมดแนะนำ)</small></div>
+  </div>
+
+  <table class="criteria-table">
+    <thead><tr><th style="width:50px">#</th><th>เกณฑ์</th></tr></thead>
+    <tbody>
+      <tr><td class="criteria-id">24.1</td><td><strong>IMemoryCache</strong> — single instance cache</td></tr>
+      <tr><td class="criteria-id">24.2</td><td><strong>IDistributedCache</strong> (Redis) — share ข้าม instances</td></tr>
+      <tr><td class="criteria-id">24.3</td><td>Cache Key: <code>{Service}:{Entity}:{Id}</code></td></tr>
+      <tr><td class="criteria-id">24.4</td><td>ทุก entry ต้องมี <strong>TTL</strong> — ห้าม cache ไม่มีวันหมดอายุ</td></tr>
+      <tr><td class="criteria-id">24.5</td><td>TTL แนะนำ: Config = 1h, Business = 5-15min</td></tr>
+      <tr><td class="criteria-id">24.6</td><td><strong>Cache Invalidation</strong>: Time-based (TTL) หรือ Event-based (Pub/Sub)</td></tr>
+      <tr><td class="criteria-id">24.7</td><td>ห้าม cache <strong>Sensitive Data</strong> ไม่เข้ารหัส</td></tr>
+      <tr><td class="criteria-id">24.8</td><td>Handle <strong>Cache Miss</strong> gracefully — Fallback ไป DB</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     §25 — FEATURE FLAGS
+     ═══════════════════════════════════════════════════════ -->
+<section class="section section-anchor" id="s25">
+  <div class="section-header">
+    <div class="section-num recommended">25</div>
+    <div class="section-title">Feature Flags <small>5 เกณฑ์ (ทั้งหมดแนะนำ)</small></div>
+  </div>
+
+  <table class="criteria-table">
+    <thead><tr><th style="width:50px">#</th><th>เกณฑ์</th></tr></thead>
+    <tbody>
+      <tr><td class="criteria-id">25.1</td><td>Flag ผ่าน <strong>Configuration</strong> — ห้าม Hard-code if/else</td></tr>
+      <tr><td class="criteria-id">25.2</td><td>Naming: <code>FeatureFlags:{FeatureName}</code></td></tr>
+      <tr><td class="criteria-id">25.3</td><td>ใช้ <strong><code>Microsoft.FeatureManagement</code></strong> NuGet</td></tr>
+      <tr><td class="criteria-id">25.4</td><td>Clean up flag ที่ Rolled Out ภายใน <strong>1 Sprint</strong></td></tr>
+      <tr><td class="criteria-id">25.5</td><td>Log flag evaluation: Name, Result (On/Off), Context</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     §26 — DEVOPS
+     ═══════════════════════════════════════════════════════ -->
+<section class="section section-anchor" id="s26">
+  <div class="section-header">
+    <div class="section-num required">26</div>
+    <div class="section-title">DevOps Files <small>ขอบเขตความรับผิดชอบ — 7 เกณฑ์ (ทั้งหมดบังคับ)</small></div>
+  </div>
+
+  <div class="info-box danger">
+    <strong>🚫 Developer ห้ามแก้ไข:</strong> Jenkinsfile*, Dockerfile*, deployment.yaml, settings.xml, Nuget.Config — ทั้งหมดเป็นความรับผิดชอบของ DevOps Team
+  </div>
+
+  <table class="criteria-table">
+    <thead><tr><th style="width:50px">#</th><th>เกณฑ์</th><th style="width:200px">ถ้าไม่ทำ → เกิดอะไร</th></tr></thead>
+    <tbody>
+      <tr><td class="criteria-id">26.1</td><td>ห้ามแก้ <strong>Jenkinsfile / Dockerfile*</strong></td><td>ข้าม security scan → vulnerability เข้า prod</td></tr>
+      <tr><td class="criteria-id">26.2</td><td>ห้ามแก้ <strong>K8s manifests</strong> (deployment.yaml, service.yaml)</td><td>Pod config ผิด → service down</td></tr>
+      <tr><td class="criteria-id">26.3</td><td>ห้ามแก้ <strong>settings.xml / Nuget.Config</strong></td><td>Build fail ทั้งทีม</td></tr>
+      <tr><td class="criteria-id">26.4</td><td>ห้าม Commit DevOps files ใน PR — <strong>auto-reject</strong></td><td>PR มีไฟล์ DevOps → reject</td></tr>
+      <tr><td class="criteria-id">26.5</td><td>จำเป็นต้องเปลี่ยน → <strong>สร้าง Ticket ให้ DevOps</strong></td><td>แก้เอง → break compliance</td></tr>
+      <tr><td class="criteria-id">26.6</td><td>อ่าน + เข้าใจ <strong>Pipeline Stages</strong></td><td>Push code ที่ fail gate</td></tr>
+      <tr><td class="criteria-id">26.7</td><td><strong>Local test ก่อน Push</strong></td><td>CI fail → block ทีม</td></tr>
+    </tbody>
+  </table>
+
+  <div class="info-box info">
+    <strong>📋 Pipeline Gates ที่ Developer ต้องรู้:</strong> Restore Package → Run UnitTest (100% pass) → Code Coverage → SonarQube → Secrets Scanning → Library Scanning (OWASP) → Build Docker → Deploy K8s
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     FOOTER
+     ═══════════════════════════════════════════════════════ -->
+<footer class="footer">
+  <p><strong>Coding Standard — ASP.NET Core Web API + Dapper</strong> · .NET 10 / C# 14</p>
+  <p>295 Criteria (🔴 246 Required · 🟡 49 Recommended) · 26 Sections · Applied to all API Projects in TFS ITGroup_Collection</p>
+  <p style="margin-top: 8px;">สร้างเมื่อ: มีนาคม 2026 · อัปเดตล่าสุด: 12 March 2026</p>
+  <p style="margin-top: 4px; color: var(--text-muted);">References: Microsoft .NET Docs, OWASP ASVS 5.0, NIST SP 800-53, ISO 27001:2022, CWE Top 25 (2024)</p>
+</footer>
+
+</main>
+
+<!-- SCROLL TO TOP -->
+<button class="scroll-top" id="scrollTop" title="กลับด้านบน">↑</button>
+
+<!-- READING PROGRESS -->
+<div class="progress-bar"><div class="fill" id="progressFill"></div></div>
+
+<script>
+// ── Close sidebar on mobile ──
+document.querySelectorAll('.nav-link').forEach(link => {
+  link.addEventListener('click', () => {
+    if (window.innerWidth <= 1024) {
+      document.querySelector('.sidebar').classList.remove('open');
+    }
+  });
+});
+
+// ── Highlight active nav link on scroll ──
+const sections = document.querySelectorAll('.section-anchor');
+const navLinks = document.querySelectorAll('.nav-link');
+
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      navLinks.forEach(link => {
+        link.style.borderLeftColor = 'transparent';
+        link.style.color = '';
+        link.style.fontWeight = '';
+      });
+      const active = document.querySelector(`.nav-link[href="#${entry.target.id}"]`);
+      if (active) {
+        active.style.borderLeftColor = 'var(--accent-blue)';
+        active.style.color = '#1d4ed8';
+        active.style.fontWeight = '600';
+        active.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      }
+    }
+  });
+}, { rootMargin: '-20% 0px -70% 0px' });
+
+sections.forEach(s => observer.observe(s));
+
+// ── Scroll to top button ──
+const scrollBtn = document.getElementById('scrollTop');
+window.addEventListener('scroll', () => {
+  scrollBtn.classList.toggle('visible', window.scrollY > 400);
+  // Progress bar
+  const winH = document.documentElement.scrollHeight - window.innerHeight;
+  const pct = winH > 0 ? (window.scrollY / winH) * 100 : 0;
+  document.getElementById('progressFill').style.width = pct + '%';
+});
+scrollBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+
+// ── Search / Filter sections ──
+const searchInput = document.getElementById('searchInput');
+searchInput.addEventListener('input', () => {
+  const q = searchInput.value.toLowerCase().trim();
+  document.querySelectorAll('.section').forEach(sec => {
+    if (!q) { sec.style.display = ''; return; }
+    const text = sec.textContent.toLowerCase();
+    sec.style.display = text.includes(q) ? '' : 'none';
+  });
+});
+
+// ── Keyboard shortcut: Ctrl+K → focus search ──
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+    e.preventDefault();
+    searchInput.focus();
+    searchInput.select();
+  }
+  if (e.key === 'Escape') {
+    searchInput.value = '';
+    searchInput.dispatchEvent(new Event('input'));
+    searchInput.blur();
+  }
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Role-Research: Security & DBA Reviewer — Pipeline Design</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+  :root {
+    --bg: #0d1117;
+    --bg2: #161b22;
+    --bg3: #21262d;
+    --border: #30363d;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --accent: #58a6ff;
+    --red: #e94560;
+    --green: #3fb950;
+    --yellow: #d29922;
+    --orange: #d4713a;
+    --purple: #a371f7;
+    --teal: #079992;
+    --sec-color: #e94560;
+    --dba-color: #58a6ff;
+    --std-color: #a371f7;
+    --qc-color: #3fb950;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans Thai', Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    font-size: 15px;
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    position: fixed;
+    left: 0; top: 0;
+    width: 220px; height: 100vh;
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    padding: 20px 0;
+    z-index: 100;
+  }
+  .sidebar-logo {
+    padding: 0 20px 16px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 12px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .sidebar nav a {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 20px;
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 13px;
+    transition: all .15s;
+    border-left: 3px solid transparent;
+  }
+  .sidebar nav a:hover,
+  .sidebar nav a.active {
+    color: var(--text);
+    background: var(--bg3);
+    border-left-color: var(--accent);
+  }
+  .sidebar nav .section-label {
+    padding: 12px 20px 4px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+  }
+
+  /* ── MAIN ── */
+  .main { margin-left: 220px; padding: 40px 40px; max-width: 1600px; }
+
+  /* ── HEADER ── */
+  .page-header {
+    margin-bottom: 40px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+  }
+  .page-header h1 {
+    font-size: 26px; font-weight: 800;
+    background: linear-gradient(135deg, var(--accent), var(--purple));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    margin-bottom: 10px;
+  }
+  .meta-badges { display: flex; flex-wrap: wrap; gap: 8px; }
+  .badge {
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid;
+  }
+  .badge-blue  { color: var(--accent);  border-color: var(--accent);  background: #1f3a5f33; }
+  .badge-green { color: var(--green);   border-color: var(--green);   background: #1a3a1f33; }
+  .badge-purple{ color: var(--purple);  border-color: var(--purple);  background: #3a1f5f33; }
+
+  /* ── SECTION ── */
+  .section { margin-bottom: 60px; scroll-margin-top: 24px; }
+  .section-title {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 20px; font-weight: 700;
+    color: var(--text);
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-title .num {
+    background: var(--accent);
+    color: var(--bg);
+    font-size: 12px; font-weight: 800;
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  /* ── TABLES ── */
+  .table-wrap { overflow-x: auto; margin: 16px 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  th {
+    background: var(--bg3);
+    color: var(--muted);
+    font-weight: 600;
+    text-align: left;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  td {
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+  tr:hover td { background: #ffffff06; }
+  td code, th code {
+    background: var(--bg3);
+    padding: 1px 6px; border-radius: 4px;
+    font-size: 12px; font-family: 'Fira Code', monospace;
+    color: var(--orange);
+  }
+  .center { text-align: center; }
+
+  /* ── SEVERITY BADGES ── */
+  .sev { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+  .sev-red    { background: #e9456022; color: #ff6b82; border: 1px solid #e9456055; }
+  .sev-yellow { background: #d2992222; color: #f0b429; border: 1px solid #d2992255; }
+  .sev-orange { background: #d4713a22; color: #f0903a; border: 1px solid #d4713a55; }
+  .sev-green  { background: #3fb95022; color: #56d364; border: 1px solid #3fb95055; }
+
+  /* ── ROLE PILLS ── */
+  .role-pill { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+  .role-sec  { background: #e9456022; color: var(--sec-color); border: 1px solid var(--sec-color); }
+  .role-dba  { background: #58a6ff22; color: var(--dba-color); border: 1px solid var(--dba-color); }
+  .role-std  { background: #a371f722; color: var(--std-color); border: 1px solid var(--std-color); }
+  .role-qc   { background: #3fb95022; color: var(--qc-color);  border: 1px solid var(--qc-color); }
+
+  /* ── TAG PILLS ── */
+  .tag { display: inline-block; padding: 1px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; margin: 1px; }
+  .tag-sec    { background: #e9456033; color: #ff6b82; }
+  .tag-dba    { background: #58a6ff33; color: #79c0ff; }
+  .tag-std    { background: #a371f733; color: #c0a0ff; }
+
+  /* ── INSIGHT BOX ── */
+  .insight {
+    background: linear-gradient(135deg, #1f3a5f22, #3a1f5f22);
+    border: 1px solid #58a6ff44;
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin: 16px 0;
+  }
+  .insight code {
+    display: block;
+    background: transparent;
+    font-family: 'Fira Code', monospace;
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.9;
+    padding: 0;
+  }
+  .insight .arrow { color: var(--accent); font-weight: 700; }
+
+  /* ── CALLOUT ── */
+  .callout {
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin: 12px 0;
+    font-size: 13.5px;
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+  .callout-blue   { background: #1f3a5f33; border: 1px solid #58a6ff55; }
+  .callout-green  { background: #1a3a1f33; border: 1px solid #3fb95055; }
+  .callout-red    { background: #3a1f1f33; border: 1px solid #e9456055; }
+  .callout-icon   { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+
+  /* ── DIAGRAM ── */
+  .diagram-wrap {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 28px 32px;
+    margin: 20px 0;
+    overflow-x: auto;
+  }
+  .diagram-wrap .mermaid {
+    width: 100%;
+  }
+  .diagram-wrap svg {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    display: block;
+  }
+  /* Pie chart stays centered but larger */
+  .diagram-wrap.pie-chart {
+    display: flex;
+    justify-content: center;
+  }
+  .diagram-wrap.pie-chart svg {
+    width: auto !important;
+    max-width: 480px !important;
+    height: 320px !important;
+  }
+  .diagram-label {
+    font-size: 12px;
+    color: var(--muted);
+    text-align: center;
+    margin-top: 10px;
+    font-style: italic;
+  }
+
+  /* ── COMPARISON CARDS ── */
+  .compare-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin: 16px 0; }
+  .compare-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px;
+    text-align: center;
+    transition: border-color .2s;
+  }
+  .compare-card.winner { border-color: var(--accent); box-shadow: 0 0 20px #58a6ff22; }
+  .compare-card h3 { font-size: 16px; margin-bottom: 4px; }
+  .compare-card .score { font-size: 28px; font-weight: 800; color: var(--accent); }
+  .compare-card .score.best { color: var(--green); }
+  .compare-card p { font-size: 12px; color: var(--muted); margin-top: 8px; }
+
+  /* ── STATS ROW ── */
+  .stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin: 16px 0; }
+  .stat-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+  }
+  .stat-card .num { font-size: 32px; font-weight: 800; color: var(--accent); }
+  .stat-card .label { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .stat-card .change { font-size: 11px; color: var(--green); margin-top: 2px; }
+
+  /* ── RULE CARDS ── */
+  .rule-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 12px; margin: 16px 0; }
+  .rule-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    display: flex; gap: 12px;
+  }
+  .rule-card .rnum {
+    background: var(--accent);
+    color: var(--bg);
+    font-size: 11px; font-weight: 800;
+    min-width: 32px; height: 22px;
+    border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 2px;
+  }
+  .rule-card .rcontent h4 { font-size: 13px; font-weight: 700; margin-bottom: 3px; }
+  .rule-card .rcontent p  { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+  /* ── STEP FLOW ── */
+  .step-flow {
+    display: flex; align-items: stretch; gap: 0;
+    margin: 16px 0; overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  .step-box {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    min-width: 130px;
+    text-align: center;
+    font-size: 12px;
+    flex-shrink: 0;
+    position: relative;
+  }
+  .step-box .step-num { font-size: 10px; color: var(--muted); margin-bottom: 4px; }
+  .step-box .step-name { font-weight: 700; font-size: 13px; }
+  .step-box.cond { border-style: dashed; opacity: .8; }
+  .step-box.parallel {
+    background: #0f346022;
+    border-color: var(--dba-color);
+  }
+  .step-arrow {
+    display: flex; align-items: center;
+    padding: 0 6px;
+    color: var(--muted);
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  /* ── SCOPE MATRIX ── */
+  .matrix-table td { font-size: 13px; }
+  .matrix-table td.check { text-align: center; color: var(--green); font-size: 16px; }
+  .matrix-table td.verify { text-align: center; color: var(--yellow); font-size: 13px; }
+  .matrix-table tr:hover td { background: #ffffff08; }
+
+  /* ── FOLDER TREE ── */
+  .folder-tree {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    font-family: 'Fira Code', 'Cascadia Code', monospace;
+    font-size: 13px;
+    line-height: 2;
+    color: var(--muted);
+  }
+  .folder-tree .dir  { color: var(--accent); }
+  .folder-tree .new  { color: var(--green); }
+  .folder-tree .mod  { color: var(--yellow); }
+  .folder-tree .cmt  { color: var(--muted); font-style: italic; }
+
+  /* ── FOOTER ── */
+  .page-footer {
+    margin-top: 60px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    text-align: center;
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+  @media(max-width:900px) {
+    .sidebar { display: none; }
+    .main { margin-left: 0; padding: 24px 20px; }
+    .compare-grid, .stats-row, .rule-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══ SIDEBAR ══ -->
+<aside class="sidebar">
+  <div class="sidebar-logo">🔬 Role-Research</div>
+  <nav>
+    <div class="section-label">Overview</div>
+    <a href="#s1">1. Tech Stack</a>
+    <a href="#s2">2. Flow Design</a>
+    <a href="#s3">3. Revised Flow</a>
+    <div class="section-label">Rules</div>
+    <a href="#s4">4. Architect Decision</a>
+    <a href="#s5">5. Scenario Audit</a>
+    <a href="#s6">6. Gap Resolution</a>
+    <div class="section-label">Roles</div>
+    <a href="#s7">7. Role Registry</a>
+    <a href="#s8">8. Document Flow</a>
+    <a href="#s9">9. Step Count</a>
+    <a href="#s10">10. Escalation</a>
+    <a href="#s11">11. สรุป</a>
+  </nav>
+</aside>
+
+<!-- ══ MAIN ══ -->
+<main class="main">
+
+  <!-- Header -->
+  <header class="page-header">
+    <h1>🔬 Security &amp; DBA Reviewer — Pipeline Design</h1>
+    <div class="meta-badges">
+      <span class="badge badge-blue">📅 16 มีนาคม 2026</span>
+      <span class="badge badge-blue">📦 ESTATEMENT_API (ASP.NET Core 3.1 + MySQL + AS400)</span>
+      <span class="badge badge-green">✅ 7 Scenarios — 16/16 Gaps ปิดครบ</span>
+      <span class="badge badge-purple">📋 อ้างอิง Role-Plan.md</span>
+    </div>
+  </header>
+
+  <!-- ══ §1 Tech Stack ══ -->
+  <section class="section" id="s1">
+    <h2 class="section-title"><span class="num">1</span> Tech Stack จาก ESTATEMENT_API</h2>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Layer</th><th>Technology</th><th class="center">Concern</th></tr></thead>
+        <tbody>
+          <tr><td>Framework</td><td>ASP.NET Core 3.1, N-Layer (Controller → Service → DataAccess)</td><td class="center">—</td></tr>
+          <tr><td>Auth</td><td>JWT Bearer + <code>[Authorize]</code></td><td class="center"><span class="role-pill role-sec">🔐 Sec</span></td></tr>
+          <tr><td>Database</td><td>MySQL × 2 DBs via EF Core + UnitOfWork NuGet</td><td class="center"><span class="role-pill role-dba">🗄️ DBA</span></td></tr>
+          <tr><td>External</td><td>AS400 Mainframe via Socket</td><td class="center"><span class="role-pill role-sec">🔐</span> <span class="role-pill role-dba">🗄️</span></td></tr>
+          <tr><td>Deploy</td><td>Jenkins (3 env) + Docker + K8s</td><td class="center">—</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:20px;">
+      <div>
+        <h3 style="font-size:14px;color:var(--sec-color);margin-bottom:10px;">🔐 Security Touchpoints จาก Code</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>รหัส</th><th>จุดพบ</th><th class="center">ระดับ</th><th>§§</th></tr></thead>
+            <tbody>
+              <tr><td>S1</td><td>JWT Key อยู่ใน appsettings ไม่ใช่ Vault</td><td class="center"><span class="sev sev-yellow">⚠️</span></td><td>§7.2</td></tr>
+              <tr><td>S2</td><td>Input validate แบบ manual <code>IsNullOrEmpty</code></td><td class="center"><span class="sev sev-yellow">⚠️</span></td><td>§15</td></tr>
+              <tr><td>S3</td><td><code>ex.ToMessage()</code> → Stack trace leak กลับ client</td><td class="center"><span class="sev sev-red">🔴</span></td><td>§8.6</td></tr>
+              <tr><td>S4</td><td>PII (email, idCard, mobileNo) ไม่มี masking</td><td class="center"><span class="sev sev-red">🔴</span></td><td>§16.4</td></tr>
+              <tr><td>S5</td><td>Hard-coded test data <code>11111111–99999999</code> bypass logic</td><td class="center"><span class="sev sev-red">🔴</span></td><td>—</td></tr>
+              <tr><td>S6</td><td>Connection string ใน config ไม่ใช่ Vault</td><td class="center"><span class="sev sev-yellow">⚠️</span></td><td>§3.21</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div>
+        <h3 style="font-size:14px;color:var(--dba-color);margin-bottom:10px;">🗄️ Database Touchpoints จาก Code</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>รหัส</th><th>จุดพบ</th><th class="center">ระดับ</th><th>§§</th></tr></thead>
+            <tbody>
+              <tr><td>D1</td><td>ใช้ EF Core + UoW NuGet (ห้ามใน Standard ใหม่)</td><td class="center"><span class="sev sev-yellow">⚠️</span></td><td>§3.30</td></tr>
+              <tr><td>D2</td><td>PK ใช้ GUID base64 ไม่ standard</td><td class="center"><span class="sev sev-yellow">⚠️</span></td><td>—</td></tr>
+              <tr><td>D3</td><td><code>SaveChanges()</code> ไม่มี explicit transaction</td><td class="center"><span class="sev sev-yellow">⚠️</span></td><td>§3</td></tr>
+              <tr><td>D4</td><td>INSERT ไม่มี audit log (Who/What/When)</td><td class="center"><span class="sev sev-red">🔴</span></td><td>§3.27</td></tr>
+              <tr><td>D5</td><td>ไม่มี migration scripts ใน <code>dbs/</code></td><td class="center"><span class="sev sev-red">🔴</span></td><td>—</td></tr>
+              <tr><td>D6</td><td>AS400 = external → DBA ตรวจ SQL ภายในไม่ได้</td><td class="center"><span class="sev sev-yellow">⚠️</span></td><td>—</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="insight">
+      <code><span class="arrow">→</span> Security <strong>design</strong> ผิดหลัง code = rewrite (Auth scheme, PII strategy)  <span class="arrow">⇒</span> Sec Pre-check อยู่ "ก่อน" Developer</code>
+      <code><span class="arrow">→</span> Security <strong>implementation</strong> ต้องเห็น code จริง (S3, S5)               <span class="arrow">⇒</span> Sec Code Review อยู่ "หลัง" Developer</code>
+      <code><span class="arrow">→</span> DB Schema ผิดหลัง code = rewrite (D5, D2)                            <span class="arrow">⇒</span> DBA Pre-check อยู่ "ก่อน" Developer</code>
+      <code><span class="arrow">→</span> DB Query/Transaction ตรวจจาก code (D3, D4)                            <span class="arrow">⇒</span> DBA Query อยู่ "หลัง" Developer</code>
+      <code style="margin-top:8px;color:var(--accent);"><span class="arrow">★</span> <strong>Sec และ DBA มีโครงสร้างเหมือนกัน: Pre-check (design) ก่อน Dev + Code Review หลัง Dev</strong></code>
+    </div>
+  </section>
+
+  <!-- ══ §2 Flow Design ══ -->
+  <section class="section" id="s2">
+    <h2 class="section-title"><span class="num">2</span> Flow Design — เปรียบเทียบ 3 แนวทาง</h2>
+
+    <div class="compare-grid">
+      <div class="compare-card">
+        <h3>A: Sequential</h3>
+        <div class="score">1.70</div>
+        <p>01→02→03→QC→Sec→DBA→Std<br/>ง่ายสุด แต่ช้าสุด ไม่มี DBA ก่อน code</p>
+      </div>
+      <div class="compare-card winner">
+        <h3>B+C: Hybrid ⭐ เลือก</h3>
+        <div class="score best">2.40</div>
+        <p>Parallel + Pre-check Gate (DBA+Sec)<br/>เร็วสุด + จับ Schema/Auth Design ก่อน code</p>
+      </div>
+      <div class="compare-card">
+        <h3>C: Split</h3>
+        <div class="score">2.10</div>
+        <p>DBA ก่อน Dev, Sec หลัง Dev<br/>ซับซ้อน, Reject loop ง่าย</p>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>เกณฑ์ (น้ำหนัก)</th><th class="center">A: Sequential</th><th class="center">B: Parallel</th><th class="center">C: Split</th></tr></thead>
+        <tbody>
+          <tr><td>Cycle Time (30%)</td><td class="center"><span class="sev sev-red">🔴 ช้า</span></td><td class="center"><span class="sev sev-green">🟢 เร็วสุด</span></td><td class="center"><span class="sev sev-yellow">🟡 กลาง</span></td></tr>
+          <tr><td>DBA จับ Schema ก่อน code (25%)</td><td class="center">❌</td><td class="center">❌</td><td class="center">✅</td></tr>
+          <tr><td>Sec เห็น code จริง (15%)</td><td class="center">✅</td><td class="center">✅</td><td class="center">✅</td></tr>
+          <tr><td>ความซับซ้อน (15%)</td><td class="center"><span class="sev sev-green">🟢 ง่าย</span></td><td class="center"><span class="sev sev-yellow">🟡 กลาง</span></td><td class="center"><span class="sev sev-red">🔴 ซับซ้อน</span></td></tr>
+          <tr><td>Reject ง่าย (10%)</td><td class="center"><span class="sev sev-yellow">🟡</span></td><td class="center"><span class="sev sev-green">🟢</span></td><td class="center"><span class="sev sev-red">🔴</span></td></tr>
+          <tr><td><strong>Weighted Score</strong></td><td class="center"><strong>1.70</strong></td><td class="center"><strong style="color:var(--accent)">2.40</strong></td><td class="center"><strong>2.10</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout callout-blue">
+      <span class="callout-icon">💡</span>
+      <span><strong>เลือก: Hybrid B+C</strong> — ใช้ Parallel (B) เป็นหลัก + เพิ่ม DBA Pre-check จาก (C) เฉพาะเมื่อมี Schema Change</span>
+    </div>
+  </section>
+
+  <!-- ══ §3 Revised Flow ══ -->
+  <section class="section" id="s3">
+    <h2 class="section-title"><span class="num">3</span> Revised Flow (ฉบับสมบูรณ์)</h2>
+
+    <div class="callout callout-blue" style="margin-bottom:16px;">
+      <span class="callout-icon">🔑</span>
+      <div>
+        <strong>Design Principles:</strong>
+        <ul style="margin:6px 0 0 16px;font-size:13px;color:var(--muted);line-height:2;">
+          <li><strong>Architect ออกก่อนเสมอ</strong> — output (Tags + Scope + DDL Draft + Sec Design) กำหนดว่า DBA/Sec จะได้รับ task ไหน ตรวจอะไร</li>
+          <li><strong>QA ตรวจเอกสาร ก่อน Pre-check ทำงาน</strong> — ป้องกัน DBA/Sec ทำเสียเปล่าถ้า Task โดน Reject</li>
+          <li><strong>DBA/Sec สมมาตรกัน</strong> — ทั้งคู่มี Pre-check (design, ก่อน Dev) + Code Review (implementation, หลัง Dev)</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="diagram-wrap">
+      <div class="mermaid">
+flowchart TD
+    REQ([Requirement]) --> EMG{Emergency?}
+    EMG -->|YES| FT_ARCH["Step 1: Architect\nminimal + sec tag"]
+    FT_ARCH --> FT_DEV["Step 4: Developer\nfix + report"]
+    FT_DEV --> FT_SEC["Step 5: Sec Reviewer\nverify + scan"]
+    FT_SEC --> FT_DONE([HOTFIX DEPLOY])
+    FT_DONE -.->|mandatory| FOLLOWUP["Follow-up Task\nFull Review ใน 1 sprint"]
+    EMG -->|NO| ARCH
+
+    subgraph S1 ["Step 1 - Solution Architect"]
+        ARCH["Architect\nวิเคราะห์ Requirement\n+ Solution Design"]
+        ARCH_OUT["OUTPUT: Development_Task\n- Tags: sec-design / sec / dba-schema / dba-query / std\n- Scope: DBA ตรวจอะไร, Sec ตรวจอะไร\n- DDL Draft (ถ้า schema change)\n- Sec Design (ถ้า sec-design)\n- Perf Baseline (ถ้า perf task)"]
+        ARCH --> ARCH_OUT
+    end
+
+    ARCH_OUT --> QA
+
+    subgraph S2 ["Step 2 - Task QA"]
+        QA["Task QA\nตรวจเอกสารครบ + Tags ถูก\n+ Scope ชัดเจน + DDL/SecDesign แนบ"]
+    end
+
+    QA -->|REJECT| ARCH
+    QA -->|APPROVE| PRECHECK_Q{"dba-schema\nor sec-design?"}
+
+    PRECHECK_Q -->|YES| PRECHECK_GATE
+    PRECHECK_Q -->|NO| DEV
+
+    subgraph PRECHECK_GATE ["Step 3 - Pre-check Gate (parallel)"]
+        direction LR
+        DBA_PRE["🗄️ DBA Pre-check\nif dba-schema\nSchema + Naming + Index\n+ Migration Script"]
+        SEC_PRE["🔐 Sec Pre-check\nif sec-design\nAuth Design + PII Strategy\n+ Input Validation Approach"]
+    end
+
+    PRECHECK_GATE -->|Any REJECT| CORRECTED["ส่ง Corrected Design\nกลับ Architect ยืนยัน"]
+    CORRECTED --> ARCH
+    PRECHECK_GATE -->|All APPROVE| DEV
+
+    subgraph S4 ["Step 4 - Developer"]
+        DEV["Developer\nImplement ตาม Task\n+ Approved Design จาก Pre-check\n+ Observations Section"]
+    end
+
+    DEV --> PARALLEL
+
+    subgraph PARALLEL ["Step 5 - Parallel Review Gate"]
+        direction LR
+        QC["Dev QC\nalways\nScope/Logic + Triage"]
+        SEC["Sec Code Review\nif sec or sec-design\nตรวจ code ตาม Approved Design\n+ Related Pattern Scan"]
+        DBA_Q["DBA Query Review\nif dba-query\nตรวจ Query/Tx/Audit\n+ Entity↔DDL"]
+    end
+
+    PARALLEL -->|Any REJECT| DEV
+    PARALLEL -->|All APPROVE| STD_CHECK{std tag?}
+
+    STD_CHECK -->|YES| STD
+    subgraph S6 ["Step 6 - Coding Standard (if std tag)"]
+        STD["Std Reviewer\n295 เกณฑ์\nข้ามส่วนที่ Sec/DBA ตรวจแล้ว"]
+    end
+    STD --> DONE
+    STD_CHECK -->|NO| DONE
+
+    DONE([MERGE READY])
+
+    style S1 fill:#0a2a1a,color:#e6edf3,stroke:#3fb950,stroke-width:2px
+    style ARCH_OUT fill:#1a3a2a,color:#56d364,stroke:#3fb950,stroke-dasharray:3
+    style S2 fill:#1a1a2e,color:#e6edf3,stroke:#d29922,stroke-width:2px
+    style PRECHECK_GATE fill:#16213e,color:#e6edf3,stroke:#58a6ff,stroke-width:2px
+    style S4 fill:#1a1a2e,color:#e6edf3,stroke:#30363d
+    style PARALLEL fill:#0f3460,color:#e6edf3,stroke:#58a6ff
+    style S6 fill:#1e1540,color:#c0a0ff,stroke:#a371f7,stroke-dasharray:4
+    style FT_ARCH fill:#e94560,color:#fff,stroke:#ff6b82
+    style FT_DEV fill:#e94560,color:#fff,stroke:#ff6b82
+    style FT_SEC fill:#e94560,color:#fff,stroke:#ff6b82
+    style FT_DONE fill:#e94560,color:#fff,stroke:#ff6b82
+    style FOLLOWUP fill:#3a1f1f,color:#ff6b82,stroke:#e94560,stroke-dasharray:4
+    style CORRECTED fill:#3a1f1f,color:#ff6b82,stroke:#e94560
+    style SEC_PRE fill:#3a1020,color:#ff8fa3,stroke:#e94560
+    style DBA_PRE fill:#0f2040,color:#79c0ff,stroke:#58a6ff
+    style SEC fill:#3a1020,color:#ff8fa3,stroke:#e94560
+    style DBA_Q fill:#0f2040,color:#79c0ff,stroke:#58a6ff
+      </div>
+    </div>
+    <p class="diagram-label">Step 3 = Pre-check Gate (DBA + Sec parallel) ก่อน Dev | Step 5 = Code Review Gate (QC + Sec + DBA parallel) หลัง Dev</p>
+
+    <div class="callout callout-green" style="margin-top:12px;">
+      <span class="callout-icon">✅</span>
+      <div>
+        <strong>ทำไม Sec ต้องมี 2 Phase เหมือน DBA:</strong>
+        <span style="font-size:13px;color:var(--muted);">ด้วยเหตุผลเดียวกับ DBA — ถ้า Auth design / PII strategy ผิดหลัง Dev code เสร็จ = ต้อง rewrite ทั้งหมด<br/>Pre-check (Step 3): ตรวจ design — Auth scheme, PII masking strategy, input validation approach<br/>Code Review (Step 5): ตรวจ code — implementation ตรงตาม approved design + scan vulnerability</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ §4 Tag System ══ -->
+  <section class="section" id="s4">
+    <h2 class="section-title"><span class="num">4</span> Architect Decision — Tags &amp; Scope (กำหนดตั้งแต่ Step 1)</h2>
+    <p style="color:var(--muted);font-size:13.5px;margin-bottom:16px;">Architect ใช้ decision tree นี้ตั้งแต่ Step 1 เพื่อกำหนด <strong>Tags</strong> + เขียน <strong>Review Scope</strong> ที่ระบุว่า DBA (Step 3/5) และ Sec (Step 3/5) ต้องตรวจอะไร → ส่งต่อให้ QA (Step 2) ตรวจความครบถ้วน</p>
+    <div class="diagram-wrap">
+      <div class="mermaid">
+flowchart TD
+    START([Task เข้ามา])
+
+    START --> DB_Q{"Schema change?\nCREATE/ALTER"}
+    DB_Q -->|YES| TAG_SCHEMA["✅ dba-schema\n+ dba-query"]
+    DB_Q -->|NO| SQL_Q{"SQL/Query ใหม่?\nแก้ DataAccess?"}
+    SQL_Q -->|YES| TAG_QUERY["✅ dba-query"]
+    SQL_Q -->|NO| NO_DBA["ไม่ติด dba"]
+
+    START --> AUTH_Q{"New Auth/Endpoint?\nNew PII handling?"}
+    AUTH_Q -->|YES| TAG_SEC_D["✅ sec-design\n+ sec"]
+    AUTH_Q -->|NO| INPUT_Q{"แก้ code\nที่แตะ Auth/PII?"}
+    INPUT_Q -->|YES| TAG_SEC["✅ sec"]
+    INPUT_Q -->|NO| EXT_Q{"Secret / TLS\n/ External?"}
+    EXT_Q -->|YES| TAG_SEC
+    EXT_Q -->|NO| NO_SEC["ไม่ติด sec"]
+
+    START --> FEAT_Q{"New Feature?"}
+    FEAT_Q -->|YES| TAG_FULL["✅ std-full"]
+    FEAT_Q -->|NO| SIZE_Q{"> 10 lines?"}
+    SIZE_Q -->|YES| TAG_PART["✅ std-partial"]
+    SIZE_Q -->|NO| NO_STD["ไม่ติด std"]
+
+    style TAG_SCHEMA fill:#0f2040,color:#79c0ff,stroke:#58a6ff
+    style TAG_QUERY fill:#0f2040,color:#79c0ff,stroke:#58a6ff
+    style TAG_SEC_D fill:#e94560,color:#fff,stroke:#ff6b82
+    style TAG_SEC fill:#3a1020,color:#ff8fa3,stroke:#e94560
+    style TAG_FULL fill:#533483,color:#c0a0ff,stroke:#a371f7
+    style TAG_PART fill:#533483,color:#c0a0ff,stroke:#a371f7
+    style NO_DBA fill:#21262d,color:#8b949e,stroke:#30363d
+    style NO_SEC fill:#21262d,color:#8b949e,stroke:#30363d
+    style NO_STD fill:#21262d,color:#8b949e,stroke:#30363d
+      </div>
+    </div>
+    <div class="callout callout-blue">
+      <span class="callout-icon">📌</span>
+      <div>
+        <strong>R1 — Scope ที่ Architect ต้องระบุ:</strong>
+        <ul style="margin:8px 0 0 16px;font-size:13px;color:var(--muted);line-height:2;">
+          <li><span class="role-pill role-dba" style="font-size:11px;">🗄️ DBA Pre</span> &nbsp;<code>[dba-schema]</code> → ระบุ Table ที่เพิ่ม/แก้, Column list, ความสัมพันธ์กับ Table เดิม</li>
+          <li><span class="role-pill role-dba" style="font-size:11px;">🗄️ DBA Query</span> &nbsp;<code>[dba-query]</code> → ระบุ Service/Repo method ที่แตะ DB, ประเภท operation</li>
+          <li><span class="role-pill role-sec" style="font-size:11px;">🔐 Sec Pre</span> &nbsp;<code>[sec-design]</code> → ระบุ Auth scheme, PII fields + masking strategy, input validation approach, endpoint authorization policy</li>
+          <li><span class="role-pill role-sec" style="font-size:11px;">🔐 Sec Code</span> &nbsp;<code>[sec]</code> → ระบุ endpoint ที่แตะ Auth, PII fields ที่เกี่ยวข้อง (code-level review)</li>
+          <li><span class="role-pill role-std" style="font-size:11px;">📋 Std</span> &nbsp;<code>[std-*]</code> → ระบุขอบเขต: ไฟล์ใหม่ / แก้ไฟล์ไหน / layer ไหน</li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout callout-red" style="margin-top:8px;">
+      <span class="callout-icon">⚡</span>
+      <div>
+        <strong>sec-design vs sec (เมื่อไหร่ใช้อะไร):</strong>
+        <ul style="margin:8px 0 0 16px;font-size:13px;color:var(--muted);line-height:2;">
+          <li><code>[sec-design]</code> = <strong>Structural</strong> — New endpoint + Auth, New PII handling, New external integration → ต้อง Pre-check design ก่อน Dev (auto-add [sec] ด้วย)</li>
+          <li><code>[sec]</code> only = <strong>Code-level</strong> — แก้ code ที่แตะ Auth/PII เดิม (design มีอยู่แล้ว) → ตรวจแค่ code หลัง Dev</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ §5 Scenarios ══ -->
+  <section class="section" id="s5">
+    <h2 class="section-title"><span class="num">5</span> Scenario Audit — ทดสอบ 7 กรณี จับ 16 Gaps</h2>
+
+    <div class="stats-row">
+      <div class="stat-card"><div class="num">7</div><div class="label">Scenarios ทดสอบ</div></div>
+      <div class="stat-card"><div class="num" style="color:var(--red)">7</div><div class="label">🔴 Critical Gaps</div></div>
+      <div class="stat-card"><div class="num" style="color:var(--yellow)">8</div><div class="label">🟡 Major Gaps</div></div>
+      <div class="stat-card"><div class="num" style="color:var(--green)">16/16</div><div class="label">ปิดครบ ✅</div></div>
+    </div>
+
+    <div class="diagram-wrap pie-chart">
+      <div class="mermaid">
+pie title Gap Severity (16 Gaps จาก 7 Scenarios)
+    "Critical (7)" : 7
+    "Major (8)" : 8
+    "Minor (1)" : 1
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Scenario</th><th>Tags</th><th class="center">Gaps</th><th>ตัวอย่าง Gap ที่พบ</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>S1</td><td>เปลี่ยน error message</td>
+            <td>—</td>
+            <td class="center"><span class="sev sev-green">0</span></td>
+            <td>✅ ไม่มี — Flow ทำงานถูกต้อง</td>
+          </tr>
+          <tr>
+            <td>S2</td><td>เพิ่ม Endpoint + Input ใหม่</td>
+            <td><span class="tag tag-sec">[sec]</span></td>
+            <td class="center"><span class="sev sev-red">2</span></td>
+            <td>Architect ติด tag ไม่มี scope / Dev เพิ่ม DB write นอกเอกสาร</td>
+          </tr>
+          <tr>
+            <td>S3</td><td>สร้าง Table + Feature ใหม่</td>
+            <td><span class="tag tag-dba">[dba-*]</span> <span class="tag tag-sec">[sec]</span> <span class="tag tag-std">[std]</span></td>
+            <td class="center"><span class="sev sev-red">4</span></td>
+            <td>Entity ไม่ตรง DDL / DBA Reject loop / EF Core vs SQL / Std ตรวจซ้ำ</td>
+          </tr>
+          <tr>
+            <td>S4</td><td>Optimize query ช้า</td>
+            <td><span class="tag tag-dba">[dba-query]</span></td>
+            <td class="center"><span class="sev sev-yellow">3</span></td>
+            <td>QA ตรวจ perf ไม่ได้ / ไม่มี baseline / AS400 ตรวจไม่ได้</td>
+          </tr>
+          <tr>
+            <td>S5</td><td>Security Hotfix (Stack Trace Leak)</td>
+            <td><span class="tag tag-sec">[sec]</span></td>
+            <td class="center"><span class="sev sev-red">2</span></td>
+            <td>Sec ตรวจแค่จุดเดียว / Hotfix ช้าเกิน</td>
+          </tr>
+          <tr>
+            <td>S6</td><td>เพิ่ม Column ใน Table เดิม</td>
+            <td><span class="tag tag-dba">[dba-*]</span></td>
+            <td class="center"><span class="sev sev-red">3</span></td>
+            <td>Migration ไม่ตรวจ / Backward compat / Existing data impact</td>
+          </tr>
+          <tr>
+            <td>S7</td><td>แก้ Logic มี legacy test data</td>
+            <td>—</td>
+            <td class="center"><span class="sev sev-yellow">2</span></td>
+            <td>Legacy risk หลุด pipeline / Dev QC ไม่มีสิทธิ์ escalate</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══ §6 Gap Resolution ══ -->
+  <section class="section" id="s6">
+    <h2 class="section-title"><span class="num">6</span> Gap Resolution — 12 Revision Rules</h2>
+
+    <div class="diagram-wrap">
+      <div class="mermaid">
+flowchart LR
+    subgraph GAPS ["16 Gaps"]
+        G1["🔴 7 Critical"]
+        G2["🟡 8 Major"]
+        G3["🟠 1 Minor"]
+    end
+    subgraph RULES ["12 Revision Rules (R1–R12)"]
+        direction TB
+        R1["R1 Scope"] --- R2["R2 Tag↩"] --- R3["R3 DDL"]
+        R4["R4 Migration"] --- R5["R5 Entity"] --- R6["R6 Scan"]
+        R7["R7 Skip§"] --- R8["R8 Obs"] --- R9["R9 Escalate"]
+        R10["R10 FastTrack"] --- R11["R11 Multi-tech"] --- R12["R12 Baseline"]
+    end
+    GAPS --> RULES
+    RULES --> RESULT["✅ 16/16 ปิดครบ"]
+    style RESULT fill:#079992,color:#fff,stroke:#079992
+    style GAPS fill:#3a1f1f,color:#ff6b82,stroke:#e94560
+    style RULES fill:#1f3a5f,color:#79c0ff,stroke:#58a6ff
+      </div>
+    </div>
+
+    <div class="rule-grid">
+      <div class="rule-card"><div class="rnum">R1</div><div class="rcontent"><h4>Architect ระบุ Review Scope</h4><p>ทุก tag ต้องระบุ §§ + คำอธิบาย — Reviewer รู้ว่าต้องตรวจอะไร <em>(ปิด G1)</em></p></div></div>
+      <div class="rule-card"><div class="rnum">R2</div><div class="rcontent"><h4>Dev QC เพิ่ม Tag ย้อนหลัง</h4><p>Dev QC มีสิทธิ์เพิ่ม tag + สร้าง Follow-up Task ได้ <em>(ปิด G2, G16)</em></p></div></div>
+      <div class="rule-card"><div class="rnum">R3</div><div class="rcontent"><h4>DBA Reject ให้ Corrected DDL</h4><p>DBA ไม่ส่งกลับเปล่า — ให้ DDL ที่ถูกต้อง, Architect แค่ยืนยัน <em>(ปิด G4)</em></p></div></div>
+      <div class="rule-card"><div class="rnum">R4</div><div class="rcontent"><h4>DBA Pre-check → Migration Script</h4><p>Output = Script พร้อม run + Backward Compat + Data Impact Assessment <em>(ปิด G12-G14)</em></p></div></div>
+      <div class="rule-card"><div class="rnum">R5</div><div class="rcontent"><h4>DBA-Query เทียบ Entity ↔ DDL</h4><p>ตรวจทุก column ว่า Entity mapping ตรงกับ DDL ที่ Pre-check approve <em>(ปิด G3)</em></p></div></div>
+      <div class="rule-card"><div class="rnum">R6</div><div class="rcontent"><h4>Sec สแกน Related Pattern</h4><p>พบ vulnerability → สแกน codebase ทั้งหมด → Related Findings (ไม่ block) <em>(ปิด G10)</em></p></div></div>
+      <div class="rule-card"><div class="rnum">R7</div><div class="rcontent"><h4>Std ข้ามส่วนที่ตรวจแล้ว</h4><p>รับ Sec/DBA Report เป็น input → ข้าม §§ ที่ตรวจไปแล้ว ลด duplication <em>(ปิด G6)</em></p></div></div>
+      <div class="rule-card"><div class="rnum">R8</div><div class="rcontent"><h4>Developer เพิ่ม Observations</h4><p>Report บังคับมี Section: Security/DB/Quality Observations (กรอก "None" ถ้าไม่พบ) <em>(ปิด G15)</em></p></div></div>
+      <div class="rule-card"><div class="rnum">R9</div><div class="rcontent"><h4>Observation Escalation Path</h4><p>Dev QC อ่าน Observations → เพิ่ม tag / สร้าง Follow-up โดยไม่ block task ปัจจุบัน <em>(ปิด G15-G16)</em></p></div></div>
+      <div class="rule-card"><div class="rnum">R10</div><div class="rcontent"><h4>Fast Track สำหรับ Hotfix</h4><p>Arch → Dev → Sec (ข้าม QA+QC) เฉพาะ Production incident + Human approve <em>(ปิด G11)</em></p></div></div>
+      <div class="rule-card"><div class="rnum">R11</div><div class="rcontent"><h4>DBA รองรับ Multi-tech</h4><p>ตรวจได้ทั้ง Dapper (SQL), EF Core (LINQ), External (calling pattern) <em>(ปิด G5, G9)</em></p></div></div>
+      <div class="rule-card"><div class="rnum">R12</div><div class="rcontent"><h4>Architect ระบุ Perf Baseline</h4><p>ระบุ ก่อน/เป้าหมาย/วิธีวัด ถ้า task เป็น Performance optimization <em>(ปิด G8)</em></p></div></div>
+    </div>
+  </section>
+
+  <!-- ══ §7 Role Registry ══ -->
+  <section class="section" id="s7">
+    <h2 class="section-title"><span class="num">7</span> Role Registry &amp; Review Scope Matrix</h2>
+
+    <div class="diagram-wrap">
+      <div class="mermaid">
+flowchart TD
+    subgraph ALWAYS ["Always — ทุก Task"]
+        direction LR
+        R01["Step 1: Architect\nวิเคราะห์ + Tags + Scope"]
+        R02["Step 2: Task QA\nตรวจเอกสาร + Tags"]
+        R03["Step 4: Developer\nImplement + Observations"]
+        R04["Step 5: Dev QC\nScope/Logic + Triage"]
+        R01 --> R02 --> R03 --> R04
+    end
+    subgraph PRE ["Step 3: Pre-check Gate"]
+        DBA_P["🗄️ DBA Pre-check\ndba-schema"]
+        SEC_P["🔐 Sec Pre-check\nsec-design"]
+    end
+    subgraph POST ["Step 5: Code Review (parallel)"]
+        SEC["🔐 Sec Code Review\nsec / sec-design"]
+        DBA_R["🗄️ DBA Query Review\ndba-query"]
+        R05["Step 6: Std Reviewer\nstd-*"]
+    end
+    R02 -.->|"if dba-schema"| DBA_P
+    R02 -.->|"if sec-design"| SEC_P
+    DBA_P -.->|"approved"| R03
+    SEC_P -.->|"approved"| R03
+    R04 -.->|"parallel"| SEC
+    R04 -.->|"parallel"| DBA_R
+    R04 -.->|"if std"| R05
+
+    style SEC_P fill:#e94560,color:#fff,stroke:#ff6b82
+    style SEC fill:#3a1020,color:#ff8fa3,stroke:#e94560
+    style DBA_P fill:#0f3460,color:#79c0ff,stroke:#58a6ff
+    style DBA_R fill:#0f3460,color:#79c0ff,stroke:#58a6ff
+    style R05 fill:#533483,color:#c0a0ff,stroke:#a371f7
+    style ALWAYS fill:#1a1a2e,color:#e6edf3,stroke:#30363d
+    style PRE fill:#16213e,color:#e6edf3,stroke:#58a6ff,stroke-dasharray:4
+    style POST fill:#16213e,color:#e6edf3,stroke:#30363d,stroke-dasharray:4
+      </div>
+    </div>
+
+    <h3 style="font-size:14px;margin:20px 0 10px;">ใครตรวจอะไร (Primary — ไม่ซ้ำกัน)</h3>
+    <div class="table-wrap">
+      <table class="matrix-table">
+        <thead>
+          <tr>
+            <th>Concern</th>
+            <th class="center"><span class="role-pill role-qc">04 Dev QC</span></th>
+            <th class="center"><span class="role-pill role-sec">🔐 Sec-Pre</span></th>
+            <th class="center"><span class="role-pill role-sec">🔐 Sec-Code</span></th>
+            <th class="center"><span class="role-pill role-dba">🗄️ DBA-Pre</span></th>
+            <th class="center"><span class="role-pill role-dba">🗄️ DBA-Query</span></th>
+            <th class="center"><span class="role-pill role-std">📋 Std</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Logic/Scope ถูกตาม Task</td><td class="check">✅</td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr><td>Observation Triage</td><td class="check">✅</td><td></td><td></td><td></td><td></td><td></td></tr>
+          <tr><td>Entity ↔ DDL match</td><td class="verify">basic</td><td></td><td></td><td></td><td class="check">✅</td><td></td></tr>
+          <tr style="border-top:1px solid var(--border)"><td>Auth Scheme Design, Authz Policy</td><td></td><td class="check">✅</td><td></td><td></td><td></td><td></td></tr>
+          <tr><td>PII Masking Strategy, Input Rules</td><td></td><td class="check">✅</td><td></td><td></td><td></td><td></td></tr>
+          <tr style="border-top:1px solid var(--border)"><td>Auth/Validation Implementation</td><td></td><td></td><td class="check">✅</td><td></td><td></td><td></td></tr>
+          <tr><td>Error Leak, Secret, PII in Code</td><td></td><td></td><td class="check">✅</td><td></td><td></td><td></td></tr>
+          <tr><td>Test Data Bypass, TLS</td><td></td><td></td><td class="check">✅</td><td></td><td></td><td></td></tr>
+          <tr><td>Related Pattern Scan</td><td></td><td></td><td class="check">✅</td><td></td><td></td><td></td></tr>
+          <tr style="border-top:1px solid var(--border)"><td>Schema Design, Naming</td><td></td><td></td><td></td><td class="check">✅</td><td></td><td></td></tr>
+          <tr><td>Index, Migration, Rollback</td><td></td><td></td><td></td><td class="check">✅</td><td></td><td></td></tr>
+          <tr><td>Backward Compat, Data Impact</td><td></td><td></td><td></td><td class="check">✅</td><td></td><td></td></tr>
+          <tr style="border-top:1px solid var(--border)"><td>Query Performance, N+1</td><td></td><td></td><td></td><td></td><td class="check">✅</td><td></td></tr>
+          <tr><td>Transaction, Audit Log</td><td></td><td></td><td></td><td></td><td class="check">✅</td><td></td></tr>
+          <tr><td>Connection Pool, EF/Dapper</td><td></td><td></td><td></td><td></td><td class="check">✅</td><td></td></tr>
+          <tr style="border-top:1px solid var(--border)"><td>Code Naming §2, Format §14</td><td></td><td></td><td></td><td></td><td></td><td class="check">✅</td></tr>
+          <tr><td>Structure §1, DI §11, Testing §12</td><td></td><td></td><td></td><td></td><td></td><td class="check">✅</td></tr>
+          <tr><td>API Design §10,§13, YAGNI §20</td><td></td><td></td><td></td><td></td><td></td><td class="check">✅</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 style="font-size:14px;margin:20px 0 10px;">Coding Standard §§ แบ่งตาม Reviewer</h3>
+    <div class="diagram-wrap pie-chart">
+      <div class="mermaid">
+pie title 295 เกณฑ์ แบ่งตาม Primary Reviewer
+    "Sec (50)" : 50
+    "DBA (30)" : 30
+    "Std (215)" : 215
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Reviewer</th><th>§§ ที่รับผิดชอบ</th></tr></thead>
+        <tbody>
+          <tr><td><span class="role-pill role-sec">🔐 Sec</span></td><td>§3.6 (SQL Injection), §3.21-3.23 (ConnSec), §7 (Auth), §8.6 (Error Leak), §9 (Secret), §15 (Validation), §16.4 (PII), §18-§19</td></tr>
+          <tr><td><span class="role-pill role-dba">🗄️ DBA</span></td><td>§3.16-3.20 (Timeout), §3.24-3.27 (Pool/Audit), §17 (Performance)</td></tr>
+          <tr><td><span class="role-pill role-std">📋 Std</span></td><td>§1-§2, §3.1-3.15, §3.28-3.30, §4-§6, §8, §10-§14, §16, §20-§26 (ทั้งหมดที่เหลือ)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══ §8 Document Flow ══ -->
+  <section class="section" id="s8">
+    <h2 class="section-title"><span class="num">8</span> Document Flow &amp; Folder Structure</h2>
+    <div class="diagram-wrap">
+      <div class="mermaid">
+flowchart LR
+    subgraph A1 ["Step 1: Architect OUTPUT"]
+        DT["Development_Task_{ID}.md\n- Tags + Review Scope\n- DDL Draft (if schema)\n- Sec Design (if sec-design)\n- Perf Baseline (if perf)"]
+    end
+    subgraph A2 ["Step 2: Task QA"]
+        QR["Task_QA_Report_{ID}.md\nvalidate Tags + Scope + DDL/SecDesign"]
+    end
+    subgraph A3 ["Step 3: Pre-check Gate (parallel)"]
+        DP["DBA_Precheck_{ID}.md\n+ Migration_Script_{ID}.sql"]
+        SP["Sec_Precheck_{ID}.md\n+ Approved Auth/PII Design"]
+    end
+    subgraph A4 ["Step 4: Developer"]
+        CODE["Code Changes"]
+        DR["Development_Report_{ID}.md\n+ Observations"]
+    end
+    subgraph A5 ["Step 5: Parallel Review Gate"]
+        QC["Dev_QC_Report_{ID}.md"]
+        SR["Security_Review_{ID}.md\nInput: Approved Sec Design"]
+        DBR["DBA_Review_{ID}.md\nInput: DBA Scope + DDL"]
+    end
+    A1 -->|"Task file"| A2
+    A2 -->|"if pre-check needed"| A3
+    A2 -->|"no pre-check"| A4
+    A3 -->|"Approved Design"| A4
+    A4 -->|"Code + Report"| A5
+
+    style A1 fill:#0a2a1a,color:#56d364,stroke:#3fb950,stroke-width:2px
+    style A2 fill:#1a1a2e,color:#e6edf3,stroke:#d29922,stroke-width:2px
+    style A3 fill:#0f2040,color:#79c0ff,stroke:#58a6ff
+    style A4 fill:#1a1a2e,color:#e6edf3,stroke:#30363d
+    style A5 fill:#0f3460,color:#e6edf3,stroke:#58a6ff
+    style SR fill:#3a1020,color:#ff8fa3,stroke:#e94560
+    style DBR fill:#0f2040,color:#79c0ff,stroke:#58a6ff
+      </div>
+    </div>
+
+    <h3 style="font-size:14px;margin:20px 0 10px;">Folder Structure</h3>
+    <div class="folder-tree">
+      <span class="dir">Ai-Role/</span><br>
+      ├── <span class="dir">01 Solution Architect/</span> <span class="mod">← ปรับ: +Tags +Scope +Baseline (R1, R12)</span><br>
+      ├── <span class="dir">02 Task QA/</span>            <span class="mod">← ปรับ: +Validate Tags (R1)</span><br>
+      ├── <span class="dir">03 Developer/</span>          <span class="mod">← ปรับ: +Observations Section (R8)</span><br>
+      ├── <span class="dir">04 Developer QC/</span>       <span class="mod">← ปรับ: +Triage (R2, R9), +Entity↔DDL (R5)</span><br>
+      ├── <span class="dir">05 Coding Standard Reviewer/</span> <span class="new">← ใหม่ (จาก Role-Plan)</span><br>
+      ├── <span class="dir new">Sec/</span>               <span class="new">← 🆕 Security Reviewer</span><br>
+      │&nbsp;&nbsp;&nbsp;├── Security Reviewer Prompt.md <span class="cmt">← Code Review (post-impl)</span><br>
+      │&nbsp;&nbsp;&nbsp;├── Security Pre-check Prompt.md <span class="cmt">← 🆕 Design Review (pre-impl)</span><br>
+      │&nbsp;&nbsp;&nbsp;├── Security_Checklist.md<br>
+      │&nbsp;&nbsp;&nbsp;└── <span class="dir">Security Review Report/</span><br>
+      └── <span class="dir new">DBA/</span>               <span class="new">← 🆕 DBA Reviewer</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;├── DBA Reviewer Prompt.md &nbsp;&nbsp;&nbsp; <span class="cmt">← Query Review (post-impl)</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;├── DBA Pre-check Prompt.md &nbsp;&nbsp; <span class="cmt">← Schema Review (pre-impl)</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;└── <span class="dir">DBA Review Report/</span>
+    </div>
+  </section>
+
+  <!-- ══ §9 Step Count ══ -->
+  <section class="section" id="s9">
+    <h2 class="section-title"><span class="num">9</span> Step Count ตาม Task Type</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Task Type</th><th>Steps ที่ต้องผ่าน</th><th>ตัวอย่าง</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Simple fix</td>
+            <td>
+              <div class="step-flow">
+                <div class="step-box" style="border-color:var(--green)"><div class="step-num">Step 1</div><div class="step-name">Arch</div></div>
+                <div class="step-arrow">→</div>
+                <div class="step-box" style="border-color:var(--yellow)"><div class="step-num">Step 2</div><div class="step-name">QA</div></div>
+                <div class="step-arrow">→</div>
+                <div class="step-box"><div class="step-num">Step 4</div><div class="step-name">Dev</div></div>
+                <div class="step-arrow">→</div>
+                <div class="step-box"><div class="step-num">Step 5</div><div class="step-name">Dev QC</div></div>
+              </div>
+            </td>
+            <td>เปลี่ยน error message</td>
+          </tr>
+          <tr>
+            <td>New Auth endpoint</td>
+            <td>
+              <div class="step-flow">
+                <div class="step-box" style="border-color:var(--green)"><div class="step-num">1</div><div class="step-name">Arch</div></div><div class="step-arrow">→</div>
+                <div class="step-box" style="border-color:var(--yellow)"><div class="step-num">2</div><div class="step-name">QA</div></div><div class="step-arrow">→</div>
+                <div class="step-box parallel" style="border-color:var(--red)"><div class="step-num">3</div><div class="step-name">🔐 Sec Pre</div></div><div class="step-arrow">→</div>
+                <div class="step-box"><div class="step-num">4</div><div class="step-name">Dev</div></div><div class="step-arrow">→</div>
+                <div class="step-box"><div class="step-num">5</div><div class="step-name">Dev QC</div></div>
+                <div class="step-arrow">+</div>
+                <div class="step-box parallel" style="border-color:var(--red)"><div class="step-num">5</div><div class="step-name">🔐 Sec</div></div>
+              </div>
+            </td>
+            <td>เพิ่ม endpoint + Auth + PII</td>
+          </tr>
+          <tr>
+            <td>แก้ Auth/Input เดิม</td>
+            <td>
+              <div class="step-flow">
+                <div class="step-box" style="border-color:var(--green)"><div class="step-num">1</div><div class="step-name">Arch</div></div><div class="step-arrow">→</div>
+                <div class="step-box" style="border-color:var(--yellow)"><div class="step-num">2</div><div class="step-name">QA</div></div><div class="step-arrow">→</div>
+                <div class="step-box"><div class="step-num">4</div><div class="step-name">Dev</div></div><div class="step-arrow">→</div>
+                <div class="step-box"><div class="step-num">5</div><div class="step-name">Dev QC</div></div>
+                <div class="step-arrow">+</div>
+                <div class="step-box parallel" style="border-color:var(--red)"><div class="step-num">5</div><div class="step-name">🔐 Sec</div></div>
+              </div>
+            </td>
+            <td>แก้ validation ใน code เดิม</td>
+          </tr>
+          <tr>
+            <td>DB query change</td>
+            <td>
+              <div class="step-flow">
+                <div class="step-box" style="border-color:var(--green)"><div class="step-num">1</div><div class="step-name">Arch</div></div><div class="step-arrow">→</div>
+                <div class="step-box" style="border-color:var(--yellow)"><div class="step-num">2</div><div class="step-name">QA</div></div><div class="step-arrow">→</div>
+                <div class="step-box"><div class="step-num">4</div><div class="step-name">Dev</div></div><div class="step-arrow">→</div>
+                <div class="step-box"><div class="step-num">5</div><div class="step-name">Dev QC</div></div>
+                <div class="step-arrow">+</div>
+                <div class="step-box parallel"><div class="step-num">5</div><div class="step-name">🗄️ DBA</div></div>
+              </div>
+            </td>
+            <td>แก้ SQL/LINQ</td>
+          </tr>
+          <tr>
+            <td>Schema change</td>
+            <td>
+              <div class="step-flow">
+                <div class="step-box" style="border-color:var(--green)"><div class="step-num">1</div><div class="step-name">Arch</div></div><div class="step-arrow">→</div>
+                <div class="step-box" style="border-color:var(--yellow)"><div class="step-num">2</div><div class="step-name">QA</div></div><div class="step-arrow">→</div>
+                <div class="step-box parallel"><div class="step-num">3</div><div class="step-name">🗄️ DBA Pre</div></div><div class="step-arrow">→</div>
+                <div class="step-box"><div class="step-num">4</div><div class="step-name">Dev</div></div><div class="step-arrow">→</div>
+                <div class="step-box"><div class="step-num">5</div><div class="step-name">QC</div></div>
+                <div class="step-arrow">+</div>
+                <div class="step-box parallel"><div class="step-num">5</div><div class="step-name">🗄️ DBA</div></div>
+              </div>
+            </td>
+            <td>เพิ่ม column</td>
+          </tr>
+          <tr>
+            <td>Full feature</td>
+            <td>
+              <div class="step-flow">
+                <div class="step-box" style="border-color:var(--green)"><div class="step-num">1</div><div class="step-name">Arch</div></div><div class="step-arrow">→</div>
+                <div class="step-box" style="border-color:var(--yellow)"><div class="step-num">2</div><div class="step-name">QA</div></div><div class="step-arrow">→</div>
+                <div class="step-box parallel"><div class="step-num">3</div><div class="step-name">🗄️ DBA Pre</div></div>
+                <div class="step-arrow">+</div>
+                <div class="step-box parallel" style="border-color:var(--red)"><div class="step-num">3</div><div class="step-name">🔐 Sec Pre</div></div>
+                <div class="step-arrow">→</div>
+                <div class="step-box"><div class="step-num">4</div><div class="step-name">Dev</div></div><div class="step-arrow">→</div>
+                <div class="step-box"><div class="step-num">5</div><div class="step-name">QC</div></div>
+                <div class="step-arrow">+</div>
+                <div class="step-box parallel" style="border-color:var(--red)"><div class="step-num">5</div><div class="step-name">🔐 Sec</div></div>
+                <div class="step-arrow">+</div>
+                <div class="step-box parallel"><div class="step-num">5</div><div class="step-name">🗄️ DBA</div></div>
+                <div class="step-arrow">→</div>
+                <div class="step-box" style="border-color:var(--purple)"><div class="step-num">6</div><div class="step-name">📋 Std</div></div>
+              </div>
+            </td>
+            <td>New table + endpoints + Auth</td>
+          </tr>
+          <tr>
+            <td><strong style="color:var(--red)">Security Hotfix</strong></td>
+            <td>
+              <div class="step-flow">
+                <div class="step-box" style="background:#3a1f1f;border-color:var(--red)"><div class="step-num">1</div><div class="step-name">Arch</div></div>
+                <div class="step-arrow" style="color:var(--red)">→</div>
+                <div class="step-box" style="background:#3a1f1f;border-color:var(--red)"><div class="step-num">4</div><div class="step-name">Dev</div></div>
+                <div class="step-arrow" style="color:var(--red)">→</div>
+                <div class="step-box" style="background:#e94560;border-color:#ff6b82"><div class="step-num">5</div><div class="step-name">🔐 Sec</div></div>
+              </div>
+            </td>
+            <td>Fast Track — ข้าม QA+DBA+QC</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══ §10 Escalation ══ -->
+  <section class="section" id="s10">
+    <h2 class="section-title"><span class="num">10</span> Observation Escalation Path</h2>
+    <div class="diagram-wrap">
+      <div class="mermaid">
+flowchart TD
+    DEV["Developer พบ issue\nนอก scope"] -->|"บันทึกใน\nObservations section"| QC["Dev QC\nอ่าน Observations"]
+    QC --> TYPE{"ประเภท?"}
+    TYPE -->|Security| SEC_ACT{"ยังอยู่ใน\nReview Cycle?"}
+    SEC_ACT -->|YES| ADD_SEC["เพิ่ม [sec] tag\ntrigger Sec Review"]
+    SEC_ACT -->|NO| FU_SEC["สร้าง Follow-up Task\n+ tag [sec]"]
+    TYPE -->|DB| DB_ACT{"ยังอยู่ใน\nReview Cycle?"}
+    DB_ACT -->|YES| ADD_DBA["เพิ่ม [dba-query] tag"]
+    DB_ACT -->|NO| FU_DBA["สร้าง Follow-up Task"]
+    TYPE -->|Quality| FU_Q["สร้าง Follow-up Task"]
+    ADD_SEC --> NOBLOCK["✅ ไม่ block\ntask ปัจจุบัน"]
+    FU_SEC --> NOBLOCK
+    ADD_DBA --> NOBLOCK
+    FU_DBA --> NOBLOCK
+    FU_Q --> NOBLOCK
+
+    style DEV fill:#e94560,color:#fff,stroke:#ff6b82
+    style NOBLOCK fill:#079992,color:#fff,stroke:#079992
+    style QC fill:#1a1a2e,color:#e6edf3,stroke:#3fb950
+    style ADD_SEC fill:#e9456022,color:#ff6b82,stroke:#e94560
+    style ADD_DBA fill:#58a6ff22,color:#79c0ff,stroke:#58a6ff
+    style FU_SEC fill:#21262d,color:#8b949e,stroke:#30363d
+    style FU_DBA fill:#21262d,color:#8b949e,stroke:#30363d
+    style FU_Q fill:#21262d,color:#8b949e,stroke:#30363d
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ §11 สรุป ══ -->
+  <section class="section" id="s11">
+    <h2 class="section-title"><span class="num">11</span> สรุป</h2>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="num">8</div>
+        <div class="label">Roles ในระบบ</div>
+        <div class="change">↑ จาก 4 เป็น 8</div>
+      </div>
+      <div class="stat-card">
+        <div class="num" style="color:var(--green)">~95%</div>
+        <div class="label">Security Coverage</div>
+        <div class="change">↑ จาก ~10%</div>
+      </div>
+      <div class="stat-card">
+        <div class="num" style="color:var(--green)">~90%</div>
+        <div class="label">DB Coverage</div>
+        <div class="change">↑ จาก ~5%</div>
+      </div>
+      <div class="stat-card">
+        <div class="num" style="color:var(--green)">0%</div>
+        <div class="label">Review Overlap</div>
+        <div class="change">Matrix ชัดเจน</div>
+      </div>
+    </div>
+
+    <div class="table-wrap" style="margin-top:16px;">
+      <table>
+        <thead><tr><th>Metric</th><th class="center">ก่อน (4 Roles)</th><th class="center">หลัง (8 Roles)</th></tr></thead>
+        <tbody>
+          <tr><td>Security Coverage</td><td class="center"><span class="sev sev-red">~10%</span></td><td class="center"><span class="sev sev-green">~95% ✅</span></td></tr>
+          <tr><td>DB Coverage</td><td class="center"><span class="sev sev-red">~5%</span></td><td class="center"><span class="sev sev-green">~90% ✅</span></td></tr>
+          <tr><td>Coding Standard Coverage</td><td class="center"><span class="sev sev-red">~10%</span></td><td class="center"><span class="sev sev-green">~95% ✅</span></td></tr>
+          <tr><td>Scenarios ทดสอบ</td><td class="center">0</td><td class="center"><strong>7</strong></td></tr>
+          <tr><td>Gaps พบ / ปิด</td><td class="center">0/0</td><td class="center"><strong>16/16 ✅</strong></td></tr>
+          <tr><td>Review Overlap</td><td class="center">N/A</td><td class="center"><strong>0%</strong></td></tr>
+          <tr><td>Revision Rules</td><td class="center">0</td><td class="center"><strong>12 (R1–R12)</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout callout-green" style="margin-top:20px;">
+      <span class="callout-icon">🚀</span>
+      <strong>Next Step:</strong>&nbsp; Approve → สร้าง Prompt จริงใน <code>Ai-Role/Sec/</code> และ <code>Ai-Role/DBA/</code>
+    </div>
+  </section>
+
+  <footer class="page-footer">
+    Role-Research — Security &amp; DBA Reviewer Pipeline Design &nbsp;|&nbsp; 16 มีนาคม 2026 &nbsp;|&nbsp; ESTATEMENT_API Reference
+  </footer>
+</main>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: false,
+    theme: 'dark',
+    themeVariables: {
+      primaryColor: '#1f3a5f',
+      primaryTextColor: '#e6edf3',
+      primaryBorderColor: '#58a6ff',
+      lineColor: '#58a6ff',
+      secondaryColor: '#16213e',
+      tertiaryColor: '#0f3460',
+      background: '#0d1117',
+      mainBkg: '#161b22',
+      nodeBkg: '#1f3a5f',
+      clusterBkg: '#1a2744',
+      titleColor: '#e6edf3',
+      edgeLabelBackground: '#21262d',
+      fontFamily: "'Segoe UI', Arial, sans-serif",
+      fontSize: '15px',
+    },
+    flowchart: {
+      curve: 'basis',
+      padding: 24,
+      nodeSpacing: 55,
+      rankSpacing: 65,
+      useMaxWidth: false,
+    },
+    pie: { textPosition: 0.65, useMaxWidth: false },
+  });
+
+  function fixSvgSizes() {
+    document.querySelectorAll('.diagram-wrap:not(.pie-chart) svg').forEach(svg => {
+      svg.removeAttribute('width');
+      svg.removeAttribute('height');
+      svg.style.cssText = 'width:100% !important; max-width:100% !important; height:auto !important; display:block;';
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    try {
+      await mermaid.run({ querySelector: '.mermaid' });
+    } catch(e) {
+      console.warn('Mermaid run error:', e);
+    }
+    fixSvgSizes();
+    setTimeout(fixSvgSizes, 400);
+
+    // Active nav highlight
+    const sections = document.querySelectorAll('.section');
+    const navLinks = document.querySelectorAll('.sidebar nav a');
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          navLinks.forEach(l => l.classList.remove('active'));
+          const active = document.querySelector(`.sidebar nav a[href="#${e.target.id}"]`);
+          if (active) active.classList.add('active');
+        }
+      });
+    }, { threshold: 0.3 });
+    sections.forEach(s => observer.observe(s));
+  });
+</script>
+</body>
+</html>

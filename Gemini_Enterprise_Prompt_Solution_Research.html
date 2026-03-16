@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini Code Assist — Organization-Wide Prompt Solution</title>
+    <style>
+        :root {
+            --navy: #1a2332;
+            --dark: #243044;
+            --accent: #3d7dd9;
+            --accent-light: #5a9cf5;
+            --text: #2c3e50;
+            --text-light: #5a6a7a;
+            --border: #dde3eb;
+            --bg: #f5f7fa;
+            --white: #ffffff;
+            --green: #2e7d32;
+            --green-bg: #e8f5e9;
+            --red: #c62828;
+            --red-bg: #ffebee;
+            --yellow: #f57f17;
+            --yellow-bg: #fffde7;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+            font-size: 15px;
+        }
+
+        .page { max-width: 960px; margin: 0 auto; padding: 40px 24px; }
+
+        header {
+            background: var(--navy);
+            color: var(--white);
+            padding: 48px 0;
+            border-bottom: 4px solid var(--accent);
+        }
+        header .page { padding-top: 0; padding-bottom: 0; }
+        header h1 {
+            font-size: 1.8em;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+        }
+        header .subtitle {
+            font-size: 1.05em;
+            color: #a0b4cc;
+            font-weight: 400;
+        }
+        header .meta {
+            margin-top: 20px;
+            font-size: 0.85em;
+            color: #7a8da0;
+        }
+        header .meta span { margin-right: 24px; }
+
+        section {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 32px;
+            margin-bottom: 24px;
+        }
+
+        h2 {
+            font-size: 1.35em;
+            font-weight: 600;
+            color: var(--navy);
+            margin-bottom: 16px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        h3 {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: var(--dark);
+            margin: 20px 0 10px 0;
+        }
+
+        h4 {
+            font-size: 1em;
+            font-weight: 600;
+            color: var(--text);
+            margin: 16px 0 8px 0;
+        }
+
+        p { margin-bottom: 12px; }
+        ul, ol { margin-left: 24px; margin-bottom: 12px; }
+        li { margin-bottom: 6px; }
+
+        .alert {
+            padding: 16px 20px;
+            border-radius: 4px;
+            margin: 16px 0;
+            font-size: 0.95em;
+        }
+        .alert-important {
+            background: #e3f2fd;
+            border-left: 4px solid var(--accent);
+            color: #1565c0;
+        }
+        .alert-warning {
+            background: var(--yellow-bg);
+            border-left: 4px solid var(--yellow);
+            color: #795548;
+        }
+        .alert-success {
+            background: var(--green-bg);
+            border-left: 4px solid var(--green);
+            color: var(--green);
+        }
+        .alert-danger {
+            background: var(--red-bg);
+            border-left: 4px solid var(--red);
+            color: var(--red);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            font-size: 0.93em;
+        }
+        th {
+            background: var(--navy);
+            color: var(--white);
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 500;
+        }
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: top;
+        }
+        tr:hover { background: #f8fafc; }
+
+        .badge-yes {
+            display: inline-block;
+            background: var(--green-bg);
+            color: var(--green);
+            padding: 2px 10px;
+            border-radius: 3px;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+        .badge-no {
+            display: inline-block;
+            background: var(--red-bg);
+            color: var(--red);
+            padding: 2px 10px;
+            border-radius: 3px;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+        .badge-partial {
+            display: inline-block;
+            background: var(--yellow-bg);
+            color: var(--yellow);
+            padding: 2px 10px;
+            border-radius: 3px;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        code {
+            font-family: 'Consolas', 'Courier New', monospace;
+            background: #f0f3f7;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.9em;
+            color: #c0392b;
+        }
+        pre {
+            background: #1e2533;
+            color: #d4dae3;
+            padding: 20px;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin: 12px 0;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+        pre .cm { color: #6a7a8a; }
+        pre .kw { color: #82aaff; }
+        pre .str { color: #c3e88d; }
+
+        .step-list {
+            counter-reset: step;
+            list-style: none;
+            margin-left: 0;
+        }
+        .step-list > li {
+            counter-increment: step;
+            padding: 16px 16px 16px 56px;
+            margin: 8px 0;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            position: relative;
+        }
+        .step-list > li::before {
+            content: counter(step);
+            position: absolute;
+            left: 16px;
+            top: 16px;
+            width: 28px;
+            height: 28px;
+            background: var(--accent);
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 28px;
+            font-weight: 600;
+            font-size: 0.85em;
+        }
+        .step-list > li strong { display: block; margin-bottom: 4px; }
+
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 16px 0;
+        }
+        .col-box {
+            padding: 16px;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+        }
+        .col-box h4 { margin-top: 0; }
+        .col-green { background: var(--green-bg); border-color: #c8e6c9; }
+        .col-red { background: var(--red-bg); border-color: #ffcdd2; }
+
+        .flow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 24px 0;
+        }
+        .flow-box {
+            background: var(--navy);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            font-weight: 500;
+            text-align: center;
+        }
+        .flow-arrow { color: var(--accent); font-size: 1.4em; font-weight: bold; }
+
+        .label {
+            display: inline-block;
+            font-size: 0.78em;
+            padding: 3px 10px;
+            border-radius: 3px;
+            font-weight: 600;
+            vertical-align: middle;
+        }
+        .label-enterprise { background: #4527a0; color: white; }
+        .label-both { background: #00695c; color: white; }
+
+        footer {
+            text-align: center;
+            padding: 32px 0;
+            color: var(--text-light);
+            font-size: 0.85em;
+            border-top: 1px solid var(--border);
+            margin-top: 24px;
+        }
+        footer a { color: var(--accent); text-decoration: none; }
+        a { color: var(--accent); }
+
+        @media (max-width: 768px) {
+            .two-col { grid-template-columns: 1fr; }
+            .flow { flex-direction: column; }
+            section { padding: 20px; }
+        }
+
+        @media print {
+            body { font-size: 12px; }
+            section { break-inside: avoid; }
+            header { padding: 24px 0; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="page">
+        <h1>Gemini Code Assist &mdash; Organization-Wide Prompt Solution</h1>
+        <div class="subtitle">การกำหนด Coding Standards ระดับองค์กรผ่าน Gemini Code Assist Extension บน VS Code</div>
+        <div class="meta">
+            <span>Version 1.1</span>
+            <span>5 March 2026</span>
+            <span>Confidential &mdash; Internal Use Only</span>
+        </div>
+    </div>
+</header>
+
+<div class="page">
+
+    <!-- 1. Scope -->
+    <section>
+        <h2>1. ขอบเขตของเอกสาร</h2>
+        <div class="alert alert-important">
+            <strong>ข้อกำหนดสำคัญ:</strong> ทุก Solution ในเอกสารนี้ทำงานผ่าน <strong>Gemini Code Assist Extension บน VS Code</strong> เท่านั้น
+            ไม่มี Solution ใดต้องใช้ extension ภายนอก, proxy server หรือ wrapper application ใด ๆ ทั้งสิ้น
+        </div>
+        <p>
+            เอกสารฉบับนี้นำเสนอแนวทางในการกำหนด prompt หรือ context ระดับองค์กร
+            ให้ถูกเรียกใช้ทุกครั้งเมื่อ developer ทำงานกับ Gemini Code Assist
+            โดยมีเป้าหมายให้ผู้ใช้ปลายทางไม่สามารถแก้ไขหรือมองเห็นเนื้อหาดังกล่าวได้
+        </p>
+        <p>
+            ข้อมูลทั้งหมดตรวจสอบจาก
+            <a href="https://docs.cloud.google.com/gemini/docs/codeassist/overview" target="_blank">Google Cloud Official Documentation</a>
+            (อัปเดตล่าสุด 5 March 2026)
+        </p>
+    </section>
+
+    <!-- 2. Problem -->
+    <section>
+        <h2>2. ปัญหาที่ต้องการแก้ไข</h2>
+        <ul>
+            <li>ต้องการให้ทีมทั้งองค์กรปฏิบัติตาม Coding Standards เดียวกัน</li>
+            <li>ต้องการ prompt/context ที่ผู้ใช้ไม่สามารถแก้ไขได้ หรือไม่ต้องเห็นเนื้อหาโดยตรง</li>
+            <li>ใช้ Gemini Code Assist (Standard หรือ Enterprise) ผ่าน VS Code</li>
+            <li>ต้องการจัดการแบบรวมศูนย์และ deploy ได้ทั่วทั้งองค์กร</li>
+        </ul>
+    </section>
+
+    <!-- 3. Fact Check -->
+    <section>
+        <h2>3. ข้อเท็จจริงที่ต้องทราบก่อน</h2>
+        <div class="alert alert-warning">
+            <strong>ข้อจำกัดของ Gemini Code Assist ณ ปัจจุบัน:</strong><br>
+            Gemini Code Assist <strong>ไม่มี</strong> feature "System Instruction" หรือ "Organization Policy for Prompt"
+            ที่ Admin สามารถตั้งค่า hidden prompt แล้ว inject เข้าทุก request โดยอัตโนมัติ
+        </div>
+        <p>สิ่งที่ Gemini Code Assist มีให้ใช้จริงในการกำหนด context ระดับองค์กร มีดังนี้:</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Feature</th>
+                    <th>Edition</th>
+                    <th>รายละเอียด</th>
+                    <th>ผู้ใช้เห็นเนื้อหา</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Code Customization</strong><br>(Private Repo Indexing)</td>
+                    <td><span class="label label-enterprise">Enterprise</span></td>
+                    <td>Index private repository แล้วใช้เป็น context ใน code completion, generation และ chat</td>
+                    <td><span class="badge-yes">ซ่อนได้</span><br>ผู้ใช้ไม่เห็นตัว indexed data</td>
+                </tr>
+                <tr>
+                    <td><strong>Rules</strong><br>(geminicodeassist.rules)</td>
+                    <td><span class="label label-both">Standard / Enterprise</span></td>
+                    <td>Text ที่ถูก include ในทุก chat prompt โดยอัตโนมัติ</td>
+                    <td><span class="badge-no">เห็นได้</span><br>ผู้ใช้ดูได้ใน Settings</td>
+                </tr>
+                <tr>
+                    <td><strong>Custom Commands</strong><br>(geminicodeassist.customCommands)</td>
+                    <td><span class="label label-both">Standard / Enterprise</span></td>
+                    <td>คำสั่งสำเร็จรูปที่เรียกจาก Quick Pick (Ctrl+I)</td>
+                    <td><span class="badge-no">เห็นได้</span><br>ผู้ใช้ดูได้ใน Settings</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <!-- 4. Comparison -->
+    <section>
+        <h2>4. สรุปเปรียบเทียบ Solution</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>เกณฑ์</th>
+                    <th>A. Code Customization</th>
+                    <th>B. Rules (Workspace)</th>
+                    <th>C. Custom Commands</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>ทำงานผ่าน Gemini Code Assist</td>
+                    <td><span class="badge-yes">ใช่</span></td>
+                    <td><span class="badge-yes">ใช่</span></td>
+                    <td><span class="badge-yes">ใช่</span></td>
+                </tr>
+                <tr>
+                    <td>ซ่อนเนื้อหาจากผู้ใช้</td>
+                    <td><span class="badge-yes">ซ่อนได้</span></td>
+                    <td><span class="badge-no">ไม่ได้</span></td>
+                    <td><span class="badge-no">ไม่ได้</span></td>
+                </tr>
+                <tr>
+                    <td>ผู้ใช้แก้ไขไม่ได้</td>
+                    <td><span class="badge-yes">ใช่</span><br>ควบคุมผ่าน IAM</td>
+                    <td><span class="badge-partial">บางส่วน</span><br>override ด้วย User Settings ได้</td>
+                    <td><span class="badge-partial">บางส่วน</span><br>override ด้วย User Settings ได้</td>
+                </tr>
+                <tr>
+                    <td>Apply ทั้งองค์กร</td>
+                    <td><span class="badge-yes">ใช่</span><br>ผ่าน Google Cloud</td>
+                    <td><span class="badge-partial">ต้อง commit</span><br>ทุกโปรเจกต์</td>
+                    <td><span class="badge-partial">ต้อง commit</span><br>ทุกโปรเจกต์</td>
+                </tr>
+                <tr>
+                    <td>ครอบคลุม code completion</td>
+                    <td><span class="badge-yes">ใช่</span></td>
+                    <td><span class="badge-no">ไม่ใช่</span><br>เฉพาะ chat</td>
+                    <td><span class="badge-no">ไม่ใช่</span><br>เฉพาะเมื่อเรียกใช้</td>
+                </tr>
+                <tr>
+                    <td>ครอบคลุม chat</td>
+                    <td><span class="badge-yes">ใช่</span></td>
+                    <td><span class="badge-yes">ใช่</span></td>
+                    <td><span class="badge-yes">ใช่</span></td>
+                </tr>
+                <tr>
+                    <td>Edition ที่ต้องใช้</td>
+                    <td><span class="label label-enterprise">Enterprise</span></td>
+                    <td><span class="label label-both">Standard / Enterprise</span></td>
+                    <td><span class="label label-both">Standard / Enterprise</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <!-- 5. Solution A -->
+    <section>
+        <h2>5. Solution A &mdash; Code Customization (Enterprise Only)</h2>
+        <p><span class="label label-enterprise">Enterprise</span> &mdash; แนะนำเป็นอันดับแรก</p>
+
+        <h3>5.1 หลักการทำงาน</h3>
+        <p>
+            Code Customization เป็น feature ของ Gemini Code Assist Enterprise ที่เชื่อมต่อ private repository ขององค์กร
+            (GitHub, GitLab, Bitbucket) เข้ากับ Google Cloud จากนั้น Gemini จะ index เนื้อหาใน repository
+            และนำ coding style, internal API, patterns, documentation ไปใช้เป็น context ใน code completion, code generation
+            และ chat response โดยอัตโนมัติ
+        </p>
+        <p>
+            อ้างอิง:
+            <a href="https://docs.cloud.google.com/gemini/docs/codeassist/code-customization-overview" target="_blank">Code Customization Overview</a>
+        </p>
+
+        <div class="flow">
+            <div class="flow-box">Private Repository<br>(Coding Standards)</div>
+            <div class="flow-arrow">&rarr;</div>
+            <div class="flow-box">Developer Connect<br>(Google Cloud)</div>
+            <div class="flow-arrow">&rarr;</div>
+            <div class="flow-box">Indexing Service<br>(Re-index ทุก 24 ชม.)</div>
+            <div class="flow-arrow">&rarr;</div>
+            <div class="flow-box">Gemini Code Assist<br>(VS Code Extension)</div>
+        </div>
+
+        <h3>5.2 เหตุผลที่แนะนำ</h3>
+        <ul>
+            <li>ผู้ใช้ไม่เห็น "prompt" โดยตรง &mdash; context มาจาก indexed data ไม่ใช่ plain text ที่ตั้งค่าใน IDE</li>
+            <li>ผู้ใช้แก้ไข index ไม่ได้ &mdash; Admin ควบคุมผ่าน IAM roles บน Google Cloud Console</li>
+            <li>ทำงานผ่าน Gemini Code Assist extension โดยตรง ไม่ต้องติดตั้งอะไรเพิ่ม</li>
+            <li>ครอบคลุมทั้ง code completion, code generation (GA ก.ย. 2024) และ chat (GA เม.ย. 2025)</li>
+            <li>Auto re-index ทุก 24 ชั่วโมง เมื่อ push การเปลี่ยนแปลงเข้า repository</li>
+        </ul>
+
+        <h3>5.3 Prerequisites</h3>
+        <ul>
+            <li>Gemini Code Assist <strong>Enterprise</strong> subscription</li>
+            <li>Gemini Code Assist VS Code extension version <strong>2.18.0+</strong></li>
+            <li>Developer Connect ใน supported region: <code>us-central1</code>, <code>europe-west1</code>, <code>asia-southeast1</code></li>
+            <li>Repository hosted บน GitHub.com, GitHub Enterprise Cloud, GitHub Enterprise Server, GitLab.com, GitLab Enterprise, Bitbucket Cloud หรือ Bitbucket Data Center</li>
+            <li>IAM roles:
+                <ul>
+                    <li>Admin: <code>roles/cloudaicompanion.codeRepositoryIndexesAdmin</code> + <code>roles/cloudaicompanion.user</code></li>
+                    <li>Developer: <code>roles/cloudaicompanion.repositoryGroupsUser</code> + <code>roles/cloudaicompanion.user</code></li>
+                </ul>
+            </li>
+        </ul>
+
+        <h3>5.4 ขั้นตอนการตั้งค่า</h3>
+        <ol class="step-list">
+            <li>
+                <strong>สร้าง Private Repository สำหรับ Coding Standards</strong>
+                รวบรวม coding standards, design patterns, code examples และ documentation
+<pre>company-coding-standards/
+├── README.md
+├── coding-standards/
+│   ├── java-standards.md
+│   ├── python-standards.md
+│   └── dotnet-standards.md
+├── architecture/
+│   ├── design-patterns.md
+│   └── security-best-practices.md
+├── examples/
+│   ├── java-samples/
+│   └── dotnet-samples/
+└── templates/
+    └── project-templates/</pre>
+            </li>
+            <li>
+                <strong>ตั้งค่า Developer Connect</strong>
+                เชื่อมต่อ repository provider กับ Google Cloud project
+                (<a href="https://docs.cloud.google.com/developer-connect/docs/overview" target="_blank">Developer Connect Documentation</a>)
+            </li>
+            <li>
+                <strong>สร้าง Code Repository Index</strong>
+<pre><span class="kw">gcloud</span> gemini code-repository-indexes create <span class="str">INDEX_NAME</span> \
+    --project=<span class="str">PROJECT_ID</span> \
+    --location=<span class="str">REGION</span></pre>
+                <p>ใช้เวลาประมาณ 30 นาที ถึง 1 ชั่วโมง จำกัด 1 index ต่อ project และต่อ organization</p>
+            </li>
+            <li>
+                <strong>สร้าง Repository Group และเพิ่ม repository</strong>
+<pre><span class="kw">gcloud</span> gemini code-repository-indexes repository-groups create <span class="str">REPO_GROUP</span> \
+    --project=<span class="str">PROJECT_ID</span> \
+    --location=<span class="str">REGION</span> \
+    --code-repository-index=<span class="str">INDEX_NAME</span> \
+    --repositories=<span class="str">'[{"resource": "REPO_RESOURCE_NAME", "branchPattern": "main"}]'</span></pre>
+            </li>
+            <li>
+                <strong>กำหนดสิทธิ์ IAM ให้ Developer</strong>
+<pre><span class="kw">gcloud</span> projects add-iam-policy-binding <span class="str">PROJECT_ID</span> \
+    --member=<span class="str">'group:developers@company.com'</span> \
+    --role=<span class="str">'roles/cloudaicompanion.repositoryGroupsUser'</span></pre>
+            </li>
+            <li>
+                <strong>ตรวจสอบสถานะ Indexing</strong>
+                ดู log ผ่าน Logs Explorer บน Google Cloud Console
+            </li>
+        </ol>
+
+        <h3>5.5 สถานะที่ผู้ใช้จะเห็นใน VS Code</h3>
+        <table>
+            <thead><tr><th>สถานะ</th><th>ความหมาย</th></tr></thead>
+            <tbody>
+                <tr><td>"All set. Code customization is enabled and configured."</td><td>พร้อมใช้งาน</td></tr>
+                <tr><td>"Unavailable"</td><td>ผู้ใช้ยังไม่มีสิทธิ์ หรือ repository group ว่าง</td></tr>
+                <tr><td>"Unset"</td><td>Admin ยังไม่ได้เปิดใช้งาน</td></tr>
+            </tbody>
+        </table>
+
+        <h3>5.6 การใช้ Remote Repository Context ใน Chat</h3>
+        <p>ผู้ใช้สามารถพิมพ์ <code>@REPOSITORY_NAME</code> ใน chat เพื่อเจาะจง indexed repository เป็น primary context:</p>
+<pre><span class="cm">// ตัวอย่างใน Gemini Code Assist chat:</span>
+@company-coding-standards Refactor this code to follow our conventions.
+@company-coding-standards What is the standard error handling pattern?</pre>
+
+        <div class="two-col">
+            <div class="col-box col-green">
+                <h4>ข้อดี</h4>
+                <ul>
+                    <li>ผู้ใช้ไม่เห็นเนื้อหา prompt โดยตรง</li>
+                    <li>Admin ควบคุม index ผ่าน IAM</li>
+                    <li>ทำงานผ่าน Gemini extension โดยตรง</li>
+                    <li>ครอบคลุม code completion + chat</li>
+                    <li>Auto re-index ทุก 24 ชม.</li>
+                    <li>ผู้ใช้ไม่ต้องตั้งค่าอะไร</li>
+                </ul>
+            </div>
+            <div class="col-box col-red">
+                <h4>ข้อจำกัด</h4>
+                <ul>
+                    <li>ต้องใช้ Enterprise license (~$45-54/user/month)</li>
+                    <li>Developer Connect region จำกัด 3 regions</li>
+                    <li>Index สูงสุด 20,000 repositories, 500 groups/index, 500 repos/group</li>
+                    <li>Indexing ครั้งแรกอาจใช้เวลานาน (re-index ทุก 24 ชม.)</li>
+                    <li>ไม่ใช่ "system prompt" แต่เป็น context จาก indexed code</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- 6. Solution B -->
+    <section>
+        <h2>6. Solution B &mdash; Rules via Workspace Settings</h2>
+        <p><span class="label label-both">Standard / Enterprise</span></p>
+
+        <h3>6.1 หลักการทำงาน</h3>
+        <p>
+            Gemini Code Assist มี feature ชื่อ <strong>Rules</strong>
+            (<code>Settings &gt; Extensions &gt; Gemini Code Assist &gt; Rules</code>)
+            เมื่อตั้งค่าแล้ว rule จะถูก <strong>include ในทุก chat prompt</strong> โดยอัตโนมัติ
+        </p>
+        <p>
+            การกำหนด rules ผ่าน <code>.vscode/settings.json</code> ที่ commit เข้า Git
+            ทำให้ทุกคนที่ clone โปรเจกต์จะได้ rules เดียวกัน
+        </p>
+        <p>
+            อ้างอิง:
+            <a href="https://docs.cloud.google.com/gemini/docs/codeassist/chat-gemini" target="_blank">Chat with Gemini Code Assist &mdash; Create Rules</a>
+        </p>
+
+        <h3>6.2 ขั้นตอนการตั้งค่า</h3>
+        <ol class="step-list">
+            <li>
+                <strong>สร้างไฟล์ <code>.vscode/settings.json</code> ในโปรเจกต์</strong>
+<pre>{
+  <span class="str">"geminicodeassist.rules"</span>: <span class="str">"Always follow these coding standards:\n1. Use descriptive variable names\n2. Include proper error handling for every method\n3. Add documentation comments for public methods\n4. Follow SOLID principles\n5. Maximum method length is 30 lines\n6. Always generate unit tests when creating new functions"</span>
+}</pre>
+            </li>
+            <li>
+                <strong>Commit และ push ไฟล์เข้า Git</strong>
+<pre><span class="kw">git</span> add .vscode/settings.json
+<span class="kw">git</span> commit -m <span class="str">"Add organization coding rules for Gemini Code Assist"</span>
+<span class="kw">git</span> push</pre>
+            </li>
+            <li>
+                <strong>ทีมทุกคน pull repository</strong> &mdash; จะได้ workspace settings ทันที
+            </li>
+        </ol>
+
+        <div class="alert alert-danger">
+            <strong>ข้อจำกัดสำคัญ &mdash; ผู้ใช้เห็นและแก้ไขเนื้อหาได้:</strong>
+            <ul style="margin-top: 8px;">
+                <li>ผู้ใช้สามารถเปิด <code>.vscode/settings.json</code> หรือ Settings UI แล้วอ่าน rules ได้</li>
+                <li>ผู้ใช้สามารถ override ด้วย User Settings ซึ่งมี priority สูงกว่า Workspace Settings</li>
+                <li>VS Code ไม่มีกลไกล็อค settings</li>
+            </ul>
+        </div>
+
+        <h3>6.3 มาตรการเสริมเพื่อลดการแก้ไข</h3>
+        <ul>
+            <li>กำหนดนโยบายองค์กรห้ามแก้ไข workspace settings</li>
+            <li>ใช้ CI/CD pipeline ตรวจสอบว่า <code>.vscode/settings.json</code> ตรงกับ template</li>
+            <li>ใช้ Git pre-commit hook reject การแก้ไข settings file</li>
+        </ul>
+    </section>
+
+    <!-- 7. Solution C -->
+    <section>
+        <h2>7. Solution C &mdash; Custom Commands via Workspace Settings</h2>
+        <p><span class="label label-both">Standard / Enterprise</span></p>
+
+        <h3>7.1 หลักการทำงาน</h3>
+        <p>
+            Gemini Code Assist รองรับ <strong>Custom Commands</strong> ที่เรียกจาก Quick Pick menu (<code>Ctrl+I</code>)
+            ตั้งค่าผ่าน workspace settings เพื่อให้ทีมทุกคนมี command มาตรฐานเดียวกัน
+        </p>
+        <p>
+            อ้างอิง:
+            <a href="https://docs.cloud.google.com/gemini/docs/codeassist/chat-gemini" target="_blank">Chat with Gemini Code Assist &mdash; Create Custom Commands</a>
+        </p>
+
+        <h3>7.2 ขั้นตอนการตั้งค่า</h3>
+        <ol class="step-list">
+            <li>
+                <strong>เพิ่ม Custom Commands ใน <code>.vscode/settings.json</code></strong>
+<pre>{
+  <span class="str">"geminicodeassist.customCommands"</span>: {
+    <span class="str">"review-standard"</span>: <span class="str">"Review this code against our coding standards: proper error handling, SOLID principles, max 30 lines per method, descriptive naming"</span>,
+    <span class="str">"generate-test"</span>: <span class="str">"Generate unit tests following AAA pattern, meaningful test names, edge cases coverage"</span>,
+    <span class="str">"add-docs"</span>: <span class="str">"Add documentation comments following our standard format"</span>
+  }
+}</pre>
+            </li>
+            <li>
+                <strong>Commit และ push</strong> &mdash; ทีม pull ไปใช้ได้ทันที
+            </li>
+        </ol>
+
+        <h3>7.3 การใช้งานฝั่งผู้ใช้</h3>
+        <p>
+            ผู้ใช้กด <code>Ctrl+I</code> แล้วเลือก command เช่น <code>review-standard</code> จาก Quick Pick menu
+        </p>
+
+        <div class="alert alert-danger">
+            <strong>ข้อจำกัดเช่นเดียวกับ Solution B:</strong>
+            ผู้ใช้สามารถเห็นเนื้อหา command ได้ใน Settings และ override ด้วย User Settings ได้
+        </div>
+    </section>
+
+    <!-- 8. Combined -->
+    <section>
+        <h2>8. การใช้งานร่วมกัน (Recommended)</h2>
+
+        <div class="alert alert-success">
+            <strong>แนะนำ:</strong> ใช้ Solution A + B + C ร่วมกันเพื่อให้ได้ผลลัพธ์ที่ดีที่สุด
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Layer</th>
+                    <th>Solution</th>
+                    <th>หน้าที่</th>
+                    <th>ผู้ใช้เห็น</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Layer 1</strong><br>Background Context</td>
+                    <td>A &mdash; Code Customization</td>
+                    <td>
+                        Index coding standards repo ให้ Gemini เรียนรู้ style ขององค์กร
+                        ทำงานอัตโนมัติในทุก code completion และ chat
+                    </td>
+                    <td><span class="badge-yes">ซ่อนได้</span></td>
+                </tr>
+                <tr>
+                    <td><strong>Layer 2</strong><br>Chat Rules</td>
+                    <td>B &mdash; Rules</td>
+                    <td>
+                        กำหนด rules เสริมใน workspace settings
+                        เช่น ข้อกำหนด security, naming conventions
+                    </td>
+                    <td><span class="badge-no">เห็นได้</span></td>
+                </tr>
+                <tr>
+                    <td><strong>Layer 3</strong><br>Task Commands</td>
+                    <td>C &mdash; Custom Commands</td>
+                    <td>
+                        Command มาตรฐานสำหรับ task ที่ทำบ่อย
+                        เช่น code review, test generation
+                    </td>
+                    <td><span class="badge-no">เห็นได้</span></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="flow">
+            <div class="flow-box">Indexed Standards<br>(Layer 1 &mdash; ซ่อนได้)</div>
+            <div class="flow-arrow">+</div>
+            <div class="flow-box">Workspace Rules<br>(Layer 2 &mdash; เห็นได้)</div>
+            <div class="flow-arrow">+</div>
+            <div class="flow-box">Custom Commands<br>(Layer 3 &mdash; เห็นได้)</div>
+            <div class="flow-arrow">=</div>
+            <div class="flow-box" style="background: var(--green);">Gemini Response<br>ตาม Standards</div>
+        </div>
+    </section>
+
+    <!-- 9. Plan -->
+    <section>
+        <h2>9. แผนการดำเนินงาน</h2>
+
+        <h3>Phase 1 &mdash; Preparation (สัปดาห์ที่ 1)</h3>
+        <ul>
+            <li>รวบรวม Coding Standards ขององค์กร</li>
+            <li>จัดทำ documentation, code examples และ templates</li>
+            <li>สร้าง private repository สำหรับ standards</li>
+            <li>ตรวจสอบ Gemini Code Assist Enterprise license</li>
+        </ul>
+
+        <h3>Phase 2 &mdash; Setup (สัปดาห์ที่ 2)</h3>
+        <ul>
+            <li>ตั้งค่า Developer Connect บน Google Cloud</li>
+            <li>สร้าง Code Repository Index และ Repository Group</li>
+            <li>กำหนดสิทธิ์ IAM สำหรับ developer</li>
+            <li>สร้าง <code>.vscode/settings.json</code> template พร้อม rules และ custom commands</li>
+        </ul>
+
+        <h3>Phase 3 &mdash; Pilot (สัปดาห์ที่ 3)</h3>
+        <ul>
+            <li>ทดสอบกับ pilot group (5-10 คน)</li>
+            <li>ตรวจสอบคุณภาพ code suggestions</li>
+            <li>รวบรวม feedback และปรับปรุง standards repository</li>
+        </ul>
+
+        <h3>Phase 4 &mdash; Rollout (สัปดาห์ที่ 4)</h3>
+        <ul>
+            <li>Deploy ทั้งองค์กร</li>
+            <li>จัดทำ training สำหรับ developer</li>
+            <li>Monitor usage ผ่าน Google Cloud Console</li>
+        </ul>
+    </section>
+
+    <!-- 10. Cost -->
+    <section>
+        <h2>10. ประมาณการค่าใช้จ่าย</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>รายการ</th>
+                    <th>Enterprise (A+B+C)</th>
+                    <th>Standard (B+C เท่านั้น)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>License (Hourly rate)</td>
+                    <td>$0.061644 / hr (12-mo commit)<br>$0.073973 / hr (monthly commit)</td>
+                    <td>$0.026027 / hr (12-mo commit)<br>$0.031233 / hr (monthly commit)</td>
+                </tr>
+                <tr>
+                    <td>License (ประมาณ / user / เดือน)</td>
+                    <td>~$45 (12-mo commit)<br>~$54 (monthly commit)</td>
+                    <td>~$19 (12-mo commit)<br>~$23 (monthly commit)</td>
+                </tr>
+                <tr>
+                    <td>Code Customization</td>
+                    <td>รวมใน Enterprise</td>
+                    <td>ไม่รองรับ</td>
+                </tr>
+                <tr>
+                    <td>Setup effort</td>
+                    <td>ปานกลาง (2-3 สัปดาห์)</td>
+                    <td>ต่ำ (2-3 วัน)</td>
+                </tr>
+                <tr>
+                    <td><strong>รวม 50 users / เดือน (12-mo)</strong></td>
+                    <td><strong>~$2,250</strong></td>
+                    <td><strong>~$950</strong></td>
+                </tr>
+                <tr>
+                    <td><strong>รวม 50 users / เดือน (monthly)</strong></td>
+                    <td><strong>~$2,700</strong></td>
+                    <td><strong>~$1,150</strong></td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="alert alert-warning">
+            <strong>หมายเหตุเรื่องราคา:</strong><br>
+            Google คิดราคาเป็น <strong>รายชั่วโมง</strong> (ประมาณ 730 ชม./เดือน) ราคาด้านบนคำนวณจาก hourly rate x 730<br>
+            ราคา 12-month commitment ถูกกว่า monthly commitment ประมาณ 17%<br>
+            อ้างอิงจาก
+            <a href="https://cloud.google.com/products/gemini/pricing" target="_blank">Gemini Code Assist Pricing</a>
+            &mdash; กรุณาตรวจสอบราคาปัจจุบันกับ Google Cloud account manager
+        </div>
+    </section>
+
+    <!-- 11. FAQ -->
+    <section>
+        <h2>11. คำถามที่พบบ่อย</h2>
+
+        <h4>Q: มีวิธีซ่อน prompt จากผู้ใช้ 100% ได้หรือไม่?</h4>
+        <p>
+            Gemini Code Assist ไม่มี "hidden system prompt" feature โดยตรง
+            แต่ Code Customization (Enterprise) เป็นทางเลือกที่ใกล้เคียงที่สุด
+            เพราะ context มาจาก indexed repository ซึ่งผู้ใช้ไม่เห็นว่า data ถูก inject อย่างไร
+        </p>
+
+        <h4>Q: ถ้าใช้ Standard license จะทำได้อย่างไร?</h4>
+        <p>
+            ใช้ Solution B (Rules) + Solution C (Custom Commands) ผ่าน workspace settings
+            แต่ต้องยอมรับว่าผู้ใช้สามารถเห็นและ override เนื้อหาได้
+        </p>
+
+        <h4>Q: Code Customization ต่างจาก Rules อย่างไร?</h4>
+        <p>
+            <strong>Code Customization:</strong> ทำงานที่ระดับ model &mdash; Gemini search indexed repository
+            แล้วรวม relevant snippets เข้า context ก่อนส่งไป model ครอบคลุมทั้ง code completion, generation และ chat<br>
+            <strong>Rules:</strong> ทำงานที่ระดับ chat &mdash; text ถูก prepend เข้าทุก chat prompt เท่านั้น
+            ไม่มีผลต่อ code completion
+        </p>
+
+        <h4>Q: Update coding standards แล้วต้องทำอะไรเพิ่ม?</h4>
+        <p>
+            Code Customization: push ไป repository แล้ว Google Cloud re-index ภายใน 24 ชม.<br>
+            Rules/Commands: push <code>.vscode/settings.json</code> แล้วทีม pull ไปใช้
+        </p>
+
+        <h4>Q: Code Customization indexing รองรับภาษาอะไร?</h4>
+        <p>
+            C, C++, C#, Go, Java, JavaScript, Kotlin, PHP, Python, Rust, TypeScript, Verilog, SystemVerilog และ Markdown
+        </p>
+    </section>
+
+    <!-- 12. References -->
+    <section>
+        <h2>12. เอกสารอ้างอิง</h2>
+        <table>
+            <thead>
+                <tr><th>หัวข้อ</th><th>URL</th></tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Gemini Code Assist Overview</td>
+                    <td><a href="https://docs.cloud.google.com/gemini/docs/codeassist/overview" target="_blank">docs.cloud.google.com/.../overview</a></td>
+                </tr>
+                <tr>
+                    <td>Code Customization Overview</td>
+                    <td><a href="https://docs.cloud.google.com/gemini/docs/codeassist/code-customization-overview" target="_blank">docs.cloud.google.com/.../code-customization-overview</a></td>
+                </tr>
+                <tr>
+                    <td>Configure Code Customization</td>
+                    <td><a href="https://docs.cloud.google.com/gemini/docs/codeassist/code-customization" target="_blank">docs.cloud.google.com/.../code-customization</a></td>
+                </tr>
+                <tr>
+                    <td>Use Code Customization</td>
+                    <td><a href="https://docs.cloud.google.com/gemini/docs/codeassist/use-code-customization" target="_blank">docs.cloud.google.com/.../use-code-customization</a></td>
+                </tr>
+                <tr>
+                    <td>Chat (Rules, Custom Commands)</td>
+                    <td><a href="https://docs.cloud.google.com/gemini/docs/codeassist/chat-gemini" target="_blank">docs.cloud.google.com/.../chat-gemini</a></td>
+                </tr>
+                <tr>
+                    <td>Pricing</td>
+                    <td><a href="https://cloud.google.com/products/gemini/pricing" target="_blank">cloud.google.com/.../pricing</a></td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+</div>
+
+<footer>
+    <div class="page">
+        <p>Gemini Code Assist Organization-Wide Prompt Solution &mdash; Version 1.1 &mdash; 5 March 2026</p>
+        <p>ข้อมูลตรวจสอบจาก <a href="https://docs.cloud.google.com/gemini/docs/codeassist/overview" target="_blank">Google Cloud Official Documentation</a> อัปเดตล่าสุด 5 March 2026</p>
+    </div>
+</footer>
+
+</body>
+</html>
