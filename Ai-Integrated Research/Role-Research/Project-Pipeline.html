@@ -553,8 +553,20 @@
             <span class="ts-what"><b>Completeness Check</b> — อัปโหลด task doc + SAD + template<br/>→ ตรวจเอกสารครบไหม citation ชี้จุดที่ขาด/ไม่ตรง</span>
           </div>
           <div class="tool-step">
+            <span class="ts-where">Infra Steering</span>
+            <span class="ts-what"><b>Slide Deck</b> — อัปโหลด DB/Sec Impact Reports<br/>→ NLM สร้าง presentation สำหรับ Infra+DBA+Sec(คน) นำเสนอ</span>
+          </div>
+          <div class="tool-step">
             <span class="ts-where">Step 6 Std</span>
             <span class="ts-what"><b>Standard Citation</b> — อัปโหลด 295 เกณฑ์ (~192KB) + code<br/>→ ตรวจ code ขัดข้อไหน cite § จริง ไม่ hallucinate เลข §</span>
+          </div>
+          <div class="tool-step">
+            <span class="ts-where">UAT</span>
+            <span class="ts-what"><b>Test Scenario</b> — อัปโหลด BRD + SAD + task docs<br/>→ สรุป test scenarios + acceptance criteria ให้ BA เตรียม test case</span>
+          </div>
+          <div class="tool-step">
+            <span class="ts-where">Retrospective</span>
+            <span class="ts-what"><b>Lessons Learned</b> — อัปโหลด review reports ทั้ง project<br/>→ สังเคราะห์ patterns, common issues, improvement areas</span>
           </div>
           <div class="tool-step">
             <span class="ts-where">Onboarding</span>
@@ -562,7 +574,7 @@
           </div>
         </div>
         <div class="tool-notuse">
-          ❌ ไม่ใช้: Step 4 (ไม่ generate code) · Step 3/5 (Role prompt เพียงพอ)
+          ❌ ไม่ใช้: Step 4 (ไม่ generate code) · Step 3 (focused review เพียงพอ)
         </div>
       </div>
 
@@ -592,6 +604,14 @@
           <div class="tool-step">
             <span class="ts-where">Step 3 Pre✓</span>
             <span class="ts-what"><b>CVE / Vulnerability Check</b> — ค้น security advisories,<br/>known DB vulnerabilities ก่อน approve design</span>
+          </div>
+          <div class="tool-step">
+            <span class="ts-where">Step 5 Sec</span>
+            <span class="ts-what"><b>OWASP / CVE Lookup</b> — ค้น latest OWASP Top 10,<br/>CVE advisories สำหรับ library/pattern ที่กำลังตรวจ code</span>
+          </div>
+          <div class="tool-step">
+            <span class="ts-where">Post Impl</span>
+            <span class="ts-what"><b>Error Investigation</b> — ค้น error messages, known issues,<br/>workarounds สำหรับ production incidents</span>
           </div>
         </div>
         <div class="tool-notuse">
