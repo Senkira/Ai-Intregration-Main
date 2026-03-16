@@ -28,12 +28,9 @@
 |---|--------|:------:|--------|---------------------|
 | 6 | Business Concept | คน | User Owner เสนอ idea — AI ไม่รู้ business context | — |
 | 7 | Business Requirement | คน | BA สัมภาษณ์ User — ต้องคุยกันจริง | — |
-| 8 | Proposal / POC | 🟡 **ลุ้น** | **Architect AI** ช่วยออกแบบ high-level solution ได้ | 01 Architect |
+| 8 | Proposal / POC | คน | PM + Architect(คน) เสนอ solution — เป็น **business decision** ไม่ใช่ analysis | — |
 
-> 🔍 **ข้อควรพิจารณา Proposal/POC:**
-> - ✅ Architect AI ช่วยวิเคราะห์ tech stack, risk, alternative ได้ดี
-> - ⚠️ แต่ Proposal ต้อง buy-in จากคน — AI ออกแบบได้ แต่ตัดสินใจไม่ได้
-> - ⚠️ POC ต้อง Dev ลงมือทำจริง — AI ช่วยได้แค่วิเคราะห์ direction
+> ❌ **Proposal ไม่ใช้ AI** — Architect AI ช่วยวิเคราะห์ได้แต่จุดประสงค์หลักคือ "should we do this?" (ตัดสินใจทำ) · AI ทำ full analysis ใน **Assessment** แทน
 
 ---
 
@@ -47,16 +44,16 @@
 | 12 | Pre Steering | คน | PM เสนอแผนกับ management — ไม่ใช่งาน AI | — |
 | 13 | **Assessment** | ✅ **AI** | **Architect + DBA + Sec** ทำ technical deep-dive ได้ | 01 Architect, DBA, Sec |
 | 14 | Get Req User#2 | คน | BA สัมภาษณ์ User | — |
-| 15 | **Get Req User#3** | 🟡 **ลุ้น** | **Architect AI** ช่วย finalize SAD + แตก task list ได้ | 01 Architect |
-| 16 | **Infra Steering** | 🟡 **ลุ้น** | **DBA + Sec** ช่วยระบุ technical requirements ได้ | DBA, Sec |
+| 15 | **Get Req User#3** | คน | BA + User freeze requirement — **human negotiation** · ซ้ำ Assessment + Step 1 | — |
+| 16 | **Infra Steering** | คน | Infra + DBA + Sec(คน) นำเสนอ — **presentation** ≠ review | — |
 | 17 | Steering | คน | PM อนุมัติงบ/timeline — ตัดสินใจ ≠ AI | — |
-| 18 | **Prepare Infra** | 🟡 **ลุ้น** | **DBA + Sec** ช่วย generate DDL + security config ได้ | DBA, Sec |
+| 18 | **Prepare Infra** | คน | Infra + DBA + Sec(คน) setup env — **operational** ≠ review/analyze | — |
 
 > 🔍 **ข้อควรพิจารณา Pre-Develop columns:**
-> - **Assessment** = ✅ ชัดเจน — AI ทำได้ดีเพราะเป็น technical analysis ล้วนๆ
-> - **Get Req User#3** = Architect finalize solution จาก requirement สุดท้าย — AI ทำได้
-> - **Infra Steering** = DBA/Sec ระบุ technical spec — AI ทำได้ แต่ต้องคนนำเสนอ
-> - **Prepare Infra** = DBA create schema / Sec configure infra — AI generate ได้ แต่คน deploy
+> - **Assessment** = ✅ ชัดเจน — เป็น **technical analysis ล้วนๆ** ตรง core (วิเคราะห์+ออกแบบ)
+> - **Get Req User#3** = Arch update SAD ซ้ำกับ Assessment (SAD) + Step 1 (แตก task)
+> - **Infra Steering** = DBA/Sec ระบุ spec → คนนำเสนอ = ไม่ใช่ core "review"
+> - **Prepare Infra** = DBA/Sec "create/configure" ≠ core "review/analyze"
 
 ---
 
@@ -87,56 +84,92 @@
 
 ---
 
-## 2. Concern Matrix — ทำไมบาง Column ไม่ควรมี AI
+## 2. หลักการตัดสิน — "Core Capability ต้องตรงจุดประสงค์หลักของ Column"
 
-| Concern | อธิบาย | Column ที่โดน |
-|---------|--------|:----------:|
-| **Human Decision** | ตัดสินใจ budget, priority, go/no-go | Steering, Business Concept |
-| **Physical Interaction** | ต้องคุยกับคนจริง สัมภาษณ์ | Get Req User#1-3, Kick off |
-| **Operational Execution** | Deploy, run script, configure prod | Go Live, Prepare Infra(บางส่วน) |
-| **Board Management** | จัดการ card/color/status | Meta columns ทั้ง 5 |
-| **Post-facto Judgment** | ประเมินจากประสบการณ์จริง | Post, Assessment |
+### Ai Role Core Capabilities
 
----
+| Ai Role | Core Capability | ประเภทงาน |
+|---------|----------------|-----------|
+| 🏗️ Architect | **วิเคราะห์** requirement → **ออกแบบ** solution | Analysis + Design |
+| 📋 Task QA | **ตรวจสอบ** เอกสาร task ก่อน dev | Document Gate |
+| 💻 Developer | **เขียน** code ตาม task | Implementation |
+| ✅ Dev QC | **ตรวจสอบ** code + triage | Code Gate |
+| 🔐 Sec | **ตรวจสอบ + วิเคราะห์** security (design + code) | Security Review |
+| 🗄️ DBA | **ตรวจสอบ + วิเคราะห์** database (design + query) | DB Review |
+| 📋 Std | **ตรวจสอบ** coding standard | Standard Review |
 
-## 3. สรุป — Column ที่ควรใช้ AI (ชัดเจน + ลุ้น)
+> **Core = วิเคราะห์ / ออกแบบ / ตรวจสอบ / เขียน code**
+> **ไม่ใช่ Core = ตัดสินใจ business / ประชุม / deploy / monitor / สร้าง infrastructure**
 
-### ✅ ชัดเจน — ใช้ AI ได้เลย
+### ทำไม 4 Column ถูกตัด
 
-| Column | Ai Roles | เหตุผล |
-|--------|----------|--------|
-| **Assessment** | 🏗️ Architect + 🗄️ DBA + 🔐 Sec | Technical deep-dive ล้วนๆ — AI ทำได้เต็มที่ |
-| **Develop** (Step 1-6) | ทั้ง 7 Roles | แกนหลักของ Ai-Role Pipeline |
-
-### 🟡 ลุ้น — AI ช่วยได้ แต่มีข้อจำกัด
-
-| Column | Ai Roles | ช่วยอะไร | ข้อจำกัด |
-|--------|----------|---------|---------|
-| **Proposal/POC** | 🏗️ Architect | วิเคราะห์ tech direction, risk | คนต้องตัดสินใจ buy-in |
-| **Get Req User#3** | 🏗️ Architect | Finalize SAD, แตก task list | Requirement มาจากคน |
-| **Infra Steering** | 🗄️ DBA + 🔐 Sec | ระบุ technical spec | คนนำเสนอ |
-| **Prepare Infra** | 🗄️ DBA + 🔐 Sec | Generate DDL + security config | คน deploy |
-
-### ❌ ไม่ควรมี AI
-
-| Column Group | จำนวน | เหตุผล |
-|-------------|:-----:|--------|
-| Meta (5) | 5 | Board management |
-| Requirement (3) ยกเว้น Proposal | 2 | Human interaction |
-| Delivery (4) ยกเว้น ลุ้น | 4 | Human decision + meeting |
-| UAT + Go Live + Post + Assessment | 4 | Operational / Post-facto |
-| **รวมไม่ใช้** | **15** | |
+| Column | ทำไมดูเหมือนใช้ AI ได้ | ทำไมจริงๆ ไม่ควร |
+|--------|----------------------|------------------|
+| **Proposal/POC** | Arch วิเคราะห์ tech ได้ | จุดประสงค์หลัก = **business decision** "ควรทำไหม คุ้มไหม" → AI วิเคราะห์ได้แต่ตัดสินใจไม่ได้ · Assessment ทำ full analysis แล้ว |
+| **Get Req User#3** | Arch finalize SAD ได้ | จุดประสงค์หลัก = **human negotiation** BA+User freeze req → Arch update SAD **ซ้ำกับ Assessment** (ทำ SAD แล้ว) + **Step 1** (แตก task แล้ว) |
+| **Infra Steering** | DBA/Sec ระบุ spec ได้ | จุดประสงค์หลัก = **presentation** ขออนุมัติ infra → DBA provisioning ≠ core "review" · คน present ไม่ใช่ AI |
+| **Prepare Infra** | DBA create schema ได้ | จุดประสงค์หลัก = **operational setup** → DBA/Sec "create/configure" ≠ core "review/analyze" |
 
 ---
 
-## 4. คำถามสำหรับ NotebookLM วิเคราะห์
+## 3. สรุปผลตัดสิน — 2 จุดที่ใช้ AI + เหตุผล
 
-> **คำถามที่ 1:** จาก Role-Research.md และ Role-Plan.md ช่อง Proposal/POC, Get Req User#3, Infra Steering, Prepare Infra ควรมี Ai Role จริงหรือไม่? มี evidence อะไรสนับสนุน?
+### ✅ Assessment — Technical Analysis (project-level)
 
-> **คำถามที่ 2:** ช่อง Assessment ที่ใช้ Architect+DBA+Sec AI ทำ SAD+Impact Report — output เหล่านี้ถูกอ้างอิงใน Step 1-6 ตรงไหนบ้าง? ครบหรือไม่?
+| Ai Role | ทำอะไร | Output → ไปไหน |
+|---------|--------|:-------------:|
+| 🏗️ Architect | Solution Architecture Design | SAD → **Step 1 input** |
+| 🗄️ DBA | Database Impact Assessment | DB Impact + Draft ERD → **Step 3 DBA Pre-check input** |
+| 🔐 Sec | Security Impact Assessment | Sec Impact + Auth Strategy → **Step 3 Sec Pre-check input** |
 
-> **คำถามที่ 3:** Fast Track (R10) สำหรับ Hotfix — ควรอยู่ใน Develop column เท่านั้น หรือควรมี card ใน Post Implement ด้วย?
+> ✅ **ตรง core ทั้ง 3 roles** — เป็น analysis/design ล้วน
+> ✅ **Output ถูกใช้จริง** — trace ถึง Step 1 + Step 3 ของ Develop
 
-> **คำถามที่ 4:** ถ้าตัด Ai Role ออกจาก UAT+ ทั้งหมด แล้ว Go Live DBA run migration script จะใช้ script จากไหน? trace ย้อนกลับไปถึง Step 3 ได้ชัดเจนหรือไม่?
+### ✅ Develop Step 1-6 — Per-Task Pipeline (ทั้ง 7 Roles)
 
-> **คำถามที่ 5:** Column ไหนที่ยังไม่มี Ai Role แต่ถ้ามีจะลด risk ได้มากที่สุด? จัดลำดับความสำคัญอย่างไร?
+> ✅ แกนหลักของ Ai-Role Pipeline — ไม่มีข้อกังขา
+
+### ❌ ที่เหลือ — งานคน (21 columns)
+
+| กลุ่ม | จำนวน | เหตุผลรวม |
+|-------|:-----:|-----------|
+| Meta | 5 | Board management |
+| Requirement (Business Concept, BRD, Proposal) | 3 | Human decision + negotiation |
+| Delivery ก่อน Assess (Get Scope → Pre Steering) | 4 | Meeting + human planning |
+| Delivery หลัง Assess (Get Req#2-3, Infra, Steering, Prepare) | 5 | Human negotiation / presentation / operational setup |
+| UAT → Project Assessment | 4 | Operational / post-facto judgment |
+| **รวมงานคน** | **21** | |
+
+---
+
+## 4. Data Flow — Assessment → Develop (จุดเชื่อมต่อ)
+
+```
+Assessment (project-level)
+├── Arch → SAD ──────────────────┐
+├── DBA → DB Impact + Draft ERD ─┼── [คนทำ: Get Req, Steering, Prepare Infra] ──┐
+└── Sec → Sec Impact + Strategy ─┘                                               │
+                                                                                  ▼
+Develop (per-task) ──────────────────────────────────────────────────────────────────
+├── Step 1: Architect ← SAD + Impact Reports → Development_Task
+├── Step 2: Task QA ← Development_Task → APPROVE/REJECT
+├── Step 3: DBA Pre-check ← Draft ERD → Migration_Script (if [dba-schema])
+│           Sec Pre-check ← Strategy → Approved Design (if [sec-design])
+├── Step 4: Developer → Code + Report (with Observations)
+├── Step 5: Dev QC + Sec Review + DBA Review (parallel)
+└── Step 6: Std Reviewer → ✅ MERGE READY
+```
+
+---
+
+## 5. คำถามสำหรับ NotebookLM ตรวจสอบ
+
+> **คำถามที่ 1:** Assessment ผลิต SAD + DB Impact + Sec Impact → Step 1-6 อ้างอิง output เหล่านี้ตรงไหนบ้าง? trace ได้ครบหรือไม่?
+
+> **คำถามที่ 2:** ระหว่าง Assessment กับ Develop มี 7 columns คั่น (Get Req#2, Get Req#3, Infra Steering, Steering, Prepare Infra, ...) → ถ้า requirement เปลี่ยนระหว่างทาง SAD ที่ทำใน Assessment ยัง valid อยู่ไหม?
+
+> **คำถามที่ 3:** Proposal ที่ตัดออก → ถ้า Architect(คน) เสนอ solution ผิดทาง → Assessment จะจับได้ไหม? หรือเป็น blind spot?
+
+> **คำถามที่ 4:** Prepare Infra ที่ตัดออก → DBA(คน) create initial schema จาก Draft ERD → ถ้า schema ผิด Step 3 DBA Pre-check จะจับได้ไหม?
+
+> **คำถามที่ 5:** สร้าง podcast สรุป "ทำไม AI ทำงานแค่ 2 จุด" สำหรับทีม ESB — ใช้ภาษาไทย 5-10 นาที

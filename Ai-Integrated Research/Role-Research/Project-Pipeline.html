@@ -185,8 +185,8 @@
   <div>
     <h1>🤖 Ai-Role Pipeline — Step 1-6 Framework Reference</h1>
     <div class="subtitle">
-      Ai Role 7 ตัว · แกนหลัก = <b>Develop (Step 1-6)</b> · Pre-Develop: Arch/DBA/Sec เตรียมงาน<br/>
-      UAT+ = งานคนทั้งหมด · Column จาง = งานคน · สว่าง = มี Ai Role
+      Ai Role 7 ตัว ทำงานใน 2 จุด: <b>Assessment</b> (project-level) + <b>Develop Step 1-6</b> (per-task)<br/>
+      Column สว่าง = Ai Role ตรง core capability · จาง = งานคน / ไม่ตรง core
     </div>
   </div>
   <div class="legend">
@@ -205,7 +205,7 @@
   <span class="phase-label phase-meta">⚙️ Meta</span>
   <span class="phase-label phase-req">🟣 (R) Requirement</span>
   <span class="phase-label phase-del">🟡 (D) Delivery</span>
-  <span class="phase-note">← บาง col มี 🏗️Arch / 🗄️DBA / 🔐Sec</span>
+  <span class="phase-note">← งานคน ยกเว้น Assessment</span>
   <span style="margin: 0 8px; color: var(--c-green); font-size: 16px; font-weight: 900;">│</span>
   <span class="phase-label" style="background:var(--c-green); color:#fff; border-color:var(--c-green);">⚡ Develop — Ai-Role Pipeline Step 1-6</span>
   <span style="margin: 0 8px; color: var(--c-green); font-size: 16px; font-weight: 900;">│</span>
@@ -235,21 +235,7 @@
 
   <div class="col dim"><div class="col-header" style="background:var(--c-purple);">Business Concept</div><div class="col-body"><div class="col-empty">งานคน<br/>PM + User Owner</div></div></div>
   <div class="col dim"><div class="col-header" style="background:var(--c-purple);">Business Requirement</div><div class="col-body"><div class="col-empty">งานคน<br/>BA + User + Architect (คน)</div></div></div>
-  <div class="col">
-    <div class="col-header" style="background:var(--c-purple);">Proposal / POC (R)</div>
-    <div class="col-body">
-      <div class="card step-card" style="border-left-color:var(--r-arch);">
-        <div class="card-title">🏗️ Architect AI: ออกแบบ High-level Solution</div>
-        <div class="card-body">วิเคราะห์ Tech stack, integration points, constraint, risk<br/>ระบุ <b>Sec concern</b> เบื้องต้น (Auth? PII?) + <b>DB concern</b> (new schema?)</div>
-        <div class="card-io">
-          <span class="io-in">← BRD (จากคน)</span><br/>
-          <span class="io-out">→ Proposal + Architecture Overview</span>
-        </div>
-        <div class="card-tags"><span class="role role-arch">🏗️ 01 Architect</span></div>
-      </div>
-      <div class="col-empty" style="padding:6px 0;">+ งานคน: PM รวม Cost Estimate · Dev ทำ POC (ถ้าจำเป็น)</div>
-    </div>
-  </div>
+  <div class="col dim"><div class="col-header" style="background:var(--c-purple);">Proposal / POC</div><div class="col-body"><div class="col-empty">งานคน — Business Decision<br/>PM + Architect(คน) เสนอ solution<br/>Dev ทำ POC · AI ทำ full analysis ใน Assessment</div></div></div>
 
   <!-- ═══ (D) DELIVERY — งานคนก่อน Develop ═══ -->
   <div class="phase-sep">
@@ -293,55 +279,10 @@
     </div>
   </div>
   <div class="col dim"><div class="col-header" style="background:var(--c-pink);">Get Req User#2</div><div class="col-body"><div class="col-empty">งานคน<br/>BA + User</div></div></div>
-  <div class="col">
-    <div class="col-header" style="background:var(--c-pink);">Get Req User#3 (D)</div>
-    <div class="col-body">
-      <div class="card step-card" style="border-left-color:var(--r-arch);">
-        <div class="card-title">🏗️ Architect AI: Finalize Solution + แตก Task List</div>
-        <div class="card-body">ปรับ SAD ตาม requirement สุดท้าย<br/>→ <b>แตก task list พร้อม tags เบื้องต้น</b></div>
-        <div class="card-io"><span class="io-out">→ Final SAD + Task List (พร้อม tags)</span></div>
-        <div class="card-tags"><span class="role role-arch">🏗️ 01 Architect</span></div>
-      </div>
-      <div class="col-empty" style="padding:6px 0;">+ งานคน: BA ยืนยัน Final Req กับ User</div>
-      <div class="checkpoint">🔒 SCOPE FREEZE — หลังจากนี้ต้อง Change Request</div>
-    </div>
-  </div>
-  <div class="col">
-    <div class="col-header" style="background:var(--c-yellow);color:#000;">Infra Steering (D)</div>
-    <div class="col-body">
-      <div class="card step-card" style="border-left-color:var(--r-dba);">
-        <div class="card-title">🗄️ DBA AI: DB Provisioning Plan</div>
-        <div class="card-body">Database sizing, HA, backup strategy</div>
-        <div class="card-io"><span class="io-in">← DB Impact Report</span></div>
-        <div class="card-tags"><span class="role role-dba">🗄️ DBA</span></div>
-      </div>
-      <div class="card step-card" style="border-left-color:var(--r-sec);">
-        <div class="card-title">🔐 Sec AI: Network Security Requirements</div>
-        <div class="card-body">Firewall rules, TLS cert, external connectivity, Vault</div>
-        <div class="card-tags"><span class="role role-sec">🔐 Sec</span></div>
-      </div>
-      <div class="col-empty" style="padding:6px 0;">+ งานคน: Infra + Architect นำเสนอ Infrastructure Needs</div>
-    </div>
-  </div>
+  <div class="col dim"><div class="col-header" style="background:var(--c-pink);">Get Req User#3</div><div class="col-body"><div class="col-empty">งานคน — Requirement Freeze<br/>BA + User ยืนยัน Final Req<br/>Architect(คน) ปรับ SAD · แตก Task = Step 1<br/>🔒 SCOPE FREEZE</div></div></div>
+  <div class="col dim"><div class="col-header" style="background:var(--c-yellow);color:#000;">Infra Steering</div><div class="col-body"><div class="col-empty">งานคน — Infra Approval<br/>Infra + DBA + Sec(คน) นำเสนอ<br/>ใช้ DB/Sec Impact Report จาก Assessment</div></div></div>
   <div class="col dim"><div class="col-header" style="background:var(--c-yellow);color:#000;">Steering</div><div class="col-body"><div class="col-empty">งานคน<br/>PM — Final Approval</div></div></div>
-  <div class="col">
-    <div class="col-header" style="background:var(--c-blue);">Prepare Infra (D)</div>
-    <div class="col-body">
-      <div class="card step-card" style="border-left-color:var(--r-dba);">
-        <div class="card-title">🗄️ DBA AI: Create Initial Schema</div>
-        <div class="card-body">DB instances, initial DDL จาก Draft ERD, users/permissions</div>
-        <div class="card-io"><span class="io-in">← DB Impact Report + Draft ERD</span></div>
-        <div class="card-tags"><span class="role role-dba">🗄️ DBA</span></div>
-      </div>
-      <div class="card step-card" style="border-left-color:var(--r-sec);">
-        <div class="card-title">🔐 Sec AI: Configure Security Infra</div>
-        <div class="card-body">Vault secrets, TLS, firewall rules, security scan</div>
-        <div class="card-tags"><span class="role role-sec">🔐 Sec</span></div>
-      </div>
-      <div class="col-empty" style="padding:6px 0;">+ งานคน: Infra setup environments · Dev setup repos + CI/CD</div>
-      <div class="checkpoint green">✅ Environments Ready → เริ่ม Develop</div>
-    </div>
-  </div>
+  <div class="col dim"><div class="col-header" style="background:var(--c-blue);">Prepare Infra</div><div class="col-body"><div class="col-empty">งานคน — Setup Environments<br/>Infra + DBA(คน) create DB + schema<br/>Sec(คน) configure Vault/TLS/firewall<br/>Dev setup repos + CI/CD</div></div></div>
 
   <!-- ════════════════════════════════════════════ -->
   <!-- ═══ DEVELOP — Ai-Role Pipeline Step 1-6 ═══ -->
@@ -367,7 +308,7 @@
           แนบ: DDL Draft (ถ้า schema) / Sec Design (ถ้า sec-design) / Perf Baseline (ถ้า perf, R12)
         </div>
         <div class="card-io">
-          <span class="io-in">← Requirement + SAD + DB/Sec Impact Report (จากคน)</span><br/>
+          <span class="io-in">← Requirement + SAD + DB/Sec Impact Report (จาก Assessment)</span><br/>
           <span class="io-out">→ Development_Task_{ID}.md</span>
         </div>
         <div class="card-tags">
@@ -590,7 +531,7 @@
   Ai-Role Pipeline — Step 1-6 Framework Reference<br/>
   อ้างอิง: Role-Research.md (Step 1-6, R1-R12) · Role-Plan.md (7 Ai Roles)<br/>
   <b>Ai Roles ทั้ง 7:</b> 01 Solution Architect · 02 Task QA · 03 Developer · 04 Developer QC · Sec · DBA · Std Reviewer<br/>
-  <span style="color:var(--accent);">⚡ แกนหลัก = Develop (Step 1-6) · Pre-Develop บาง col มี 🏗️Arch / 🗄️DBA / 🔐Sec · UAT+ = งานคน</span>
+  <span style="color:var(--accent);">⚡ Ai Role ทำงานใน 2 จุดเท่านั้น: Assessment (Arch+DBA+Sec วิเคราะห์) → Develop Step 1-6 (ทั้ง 7 Role per-task) · นอกนั้น = งานคน</span>
 </footer>
 
 <script>
