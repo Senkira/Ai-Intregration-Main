@@ -208,7 +208,7 @@
     <h1>🤖 Ai-Role Pipeline — Step 1-6 Framework Reference</h1>
     <div class="subtitle">
       Ai Role 7 ตัว ทำงานใน 2 จุด: <b>Assessment</b> (project-level) + <b>Develop Step 1-6</b> (per-task)<br/>
-      Column สว่าง = Ai Role ตรง core capability · จาง = งานคน / ไม่ตรง core
+      Column สว่าง = Ai Role ตรง core · จาง = งานคน · 🛠️ Tool Reference = เครื่องมือเสริม (NLM + Nelra)
     </div>
   </div>
   <div class="legend">
@@ -239,7 +239,7 @@
   <span class="phase-label phase-impl">🟢 (I) Go Live</span>
   <span class="phase-label phase-maint">🔵 (M) Post</span>
   <span class="phase-label phase-assess">📊 (A) Assess</span>
-  <span class="phase-note">← งานคน ทั้งหมด</span>
+  <span class="phase-note">← งานคน · 🛠️ Tools ช่วยเตรียม</span>
 </div>
 
 <!-- ══ KANBAN ══ -->
@@ -542,19 +542,19 @@
           <div style="font-size:10px; font-weight:700; color:var(--text); margin-bottom:4px;">📍 ใช้ที่ไหน ทำอะไร:</div>
           <div class="tool-step">
             <span class="ts-where">Get Scope</span>
-            <span class="ts-what"><b>Scope Preparation</b> — PM อัปโหลด BRD + Business Concept<br/>→ NLM สรุป feature list + <b>Mind Map</b> ภาพรวม<br/>→ <b>เตรียมข้อมูล</b>ก่อนคุยกับ Architect (ไม่หลุด scope)</span>
+            <span class="ts-what"><b>Scope Preparation</b> — PM อัปโหลด BRD + Business Concept<br/>→ สรุป feature list + <b>Mind Map</b> · เตรียมข้อมูลก่อนคุย Architect</span>
           </div>
           <div class="tool-step">
             <span class="ts-where">Assessment</span>
             <span class="ts-what"><b>Multi-Source Synthesis</b> — อัปโหลด BRD + system docs + tech docs (10+ ชิ้น)<br/>→ สังเคราะห์ข้ามเอกสาร หา risk, integration points พร้อม citation</span>
           </div>
           <div class="tool-step">
-            <span class="ts-where">Step 2 QA</span>
-            <span class="ts-what"><b>Completeness Check</b> — อัปโหลด task doc + SAD + template<br/>→ ตรวจเอกสารครบไหม citation ชี้จุดที่ขาด/ไม่ตรง</span>
+            <span class="ts-where">Infra Steering</span>
+            <span class="ts-what"><b>Slide Deck</b> — อัปโหลด DB/Sec Impact Reports จาก Assessment<br/>→ สร้าง presentation สำหรับ Infra+DBA+Sec(คน) นำเสนอ</span>
           </div>
           <div class="tool-step">
-            <span class="ts-where">Infra Steering</span>
-            <span class="ts-what"><b>Slide Deck</b> — อัปโหลด DB/Sec Impact Reports<br/>→ NLM สร้าง presentation สำหรับ Infra+DBA+Sec(คน) นำเสนอ</span>
+            <span class="ts-where">Step 2 QA</span>
+            <span class="ts-what"><b>Completeness Check</b> — อัปโหลด task doc + SAD + template<br/>→ ตรวจเอกสารครบไหม citation ชี้จุดที่ขาด/ไม่ตรง</span>
           </div>
           <div class="tool-step">
             <span class="ts-where">Step 6 Std</span>
@@ -574,7 +574,7 @@
           </div>
         </div>
         <div class="tool-notuse">
-          ❌ ไม่ใช้: Step 4 (ไม่ generate code) · Step 3 (focused review เพียงพอ)
+          ❌ ไม่ใช้: Step 4 (ไม่ generate code) · Step 3/5 (ใช้ Nelra ค้น CVE แทน)
         </div>
       </div>
 
@@ -598,12 +598,12 @@
             <span class="ts-what"><b>Pattern Lookup</b> — ค้น architecture patterns, integration<br/>approaches, library compatibility สำหรับ task design</span>
           </div>
           <div class="tool-step">
-            <span class="ts-where">Step 4 Dev</span>
-            <span class="ts-what"><b>Error Resolution</b> — ค้น error messages, migration guides,<br/>API docs ล่าสุดเมื่อติดปัญหา implementation</span>
-          </div>
-          <div class="tool-step">
             <span class="ts-where">Step 3 Pre✓</span>
             <span class="ts-what"><b>CVE / Vulnerability Check</b> — ค้น security advisories,<br/>known DB vulnerabilities ก่อน approve design</span>
+          </div>
+          <div class="tool-step">
+            <span class="ts-where">Step 4 Dev</span>
+            <span class="ts-what"><b>Error Resolution</b> — ค้น error messages, migration guides,<br/>API docs ล่าสุดเมื่อติดปัญหา implementation</span>
           </div>
           <div class="tool-step">
             <span class="ts-where">Step 5 Sec</span>
@@ -670,7 +670,7 @@
   อ้างอิง: Role-Research.md (Step 1-6, R1-R12) · Role-Plan.md (7 Ai Roles)<br/>
   <b>Ai Roles ทั้ง 7:</b> 01 Solution Architect · 02 Task QA · 03 Developer · 04 Developer QC · Sec · DBA · Std Reviewer<br/>
   <span style="color:var(--accent);">⚡ Ai Role ทำงานใน 2 จุด: Assessment → Develop Step 1-6 · นอกนั้น = งานคน</span><br/>
-  <span style="color:#f9ab00;">� NotebookLM</span> = source-grounded synthesis + citation · <span style="color:#4ecdc4;">🌐 Internal Nelra</span> = real-time web search · <span style="color:var(--c-red);">ทั้งคู่ ≠ Role · เป็นเครื่องมือแยกต่างหาก</span>
+  <span style="color:#f9ab00;">📒 NotebookLM</span> = source-grounded synthesis + citation · <span style="color:#4ecdc4;">🌐 Internal Nelra</span> = real-time web search · <span style="color:var(--c-red);">ทั้งคู่ ≠ Role · เป็นเครื่องมือแยกต่างหาก</span>
 </footer>
 
 <script>
