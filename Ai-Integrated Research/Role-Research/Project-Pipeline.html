@@ -185,8 +185,8 @@
   <div>
     <h1>🤖 Ai-Role Pipeline — Step 1-6 Framework Reference</h1>
     <div class="subtitle">
-      Ai Role 7 ตัว · แกนหลัก = <b>Develop (Step 1-6)</b> · Arch/DBA/Sec ทำงานข้าม column ด้วย<br/>
-      Column ที่จาง = งานคนล้วน · Column ที่สว่าง = มี Ai Role ช่วย
+      Ai Role 7 ตัว · แกนหลัก = <b>Develop (Step 1-6)</b> · Pre-Develop: Arch/DBA/Sec เตรียมงาน<br/>
+      UAT+ = งานคนทั้งหมด · Column จาง = งานคน · สว่าง = มี Ai Role
     </div>
   </div>
   <div class="legend">
@@ -213,7 +213,7 @@
   <span class="phase-label phase-impl">🟢 (I) Go Live</span>
   <span class="phase-label phase-maint">🔵 (M) Post</span>
   <span class="phase-label phase-assess">📊 (A) Assess</span>
-  <span class="phase-note">← บาง col มี 🏗️Arch / 🗄️DBA / 🔐Sec</span>
+  <span class="phase-note">← งานคน ทั้งหมด</span>
 </div>
 
 <!-- ══ KANBAN ══ -->
@@ -558,21 +558,7 @@
     <div class="sep-label" style="color:var(--c-yellow);">After</div>
   </div>
 
-  <div class="col">
-    <div class="col-header" style="background:var(--c-brown);">UAT (D)</div>
-    <div class="col-body">
-      <div class="card step-card" style="border-left-color:var(--r-dev);">
-        <div class="card-title">💻 Defect Fix → กลับเข้า Pipeline Step 4→5</div>
-        <div class="card-body">User พบ defect → Dev fix ผ่าน <b>Step 4 (Dev) → Step 5 (QC+Review)</b><br/>ไม่ต้องกลับ Step 1 ถ้า defect อยู่ใน scope เดิม</div>
-        <div class="card-tags">
-          <span class="role role-dev">💻 03 Developer</span>
-          <span class="role role-devqc">✅ 04 Dev QC</span>
-          <span class="tag tag-cond">+ Sec/DBA ถ้ามี tag</span>
-        </div>
-      </div>
-      <div class="col-empty" style="padding:6px 0;">+ งานคน: BA เตรียม test case · User ทดสอบ</div>
-    </div>
-  </div>
+  <div class="col dim"><div class="col-header" style="background:var(--c-brown);">UAT</div><div class="col-body"><div class="col-empty">งานคน<br/>User ทดสอบ · BA เตรียม test case<br/>Defect fix กลับเข้า Develop (Step 4→5)</div></div></div>
 
   <div class="phase-sep">
     <div style="font-size:18px;">🟢</div>
@@ -580,24 +566,7 @@
     <div class="sep-label" style="color:var(--c-green);">(I)</div>
   </div>
 
-  <div class="col">
-    <div class="col-header" style="background:var(--c-green);">Go Live (I)</div>
-    <div class="col-body">
-      <div class="card step-card" style="border-left-color:var(--r-dba);">
-        <div class="card-title">🗄️ DBA AI: Run Production Migration</div>
-        <div class="card-body">ใช้ Migration Script ที่ผ่าน DBA Pre-check (Step 3) เท่านั้น</div>
-        <div class="card-io"><span class="io-in">← Migration_Script_{ID}.sql (approved)</span></div>
-        <div class="card-tags"><span class="role role-dba">🗄️ DBA</span></div>
-      </div>
-      <div class="card step-card" style="border-left-color:var(--r-sec);">
-        <div class="card-title">🔐 Sec AI: Verify Production Config</div>
-        <div class="card-body">TLS ถูก? Secret อยู่ Vault? Firewall? No debug mode?</div>
-        <div class="card-tags"><span class="role role-sec">🔐 Sec</span></div>
-      </div>
-      <div class="col-empty" style="padding:6px 0;">+ งานคน: Infra deploy · Dev smoke test</div>
-      <div class="checkpoint green">✅ Go-Live Confirmed</div>
-    </div>
-  </div>
+  <div class="col dim"><div class="col-header" style="background:var(--c-green);">Go Live</div><div class="col-body"><div class="col-empty">งานคน<br/>Infra deploy · DBA run migration<br/>Sec verify prod config</div></div></div>
 
   <div class="phase-sep">
     <div style="font-size:18px;">🔵</div>
@@ -605,26 +574,7 @@
     <div class="sep-label" style="color:var(--c-teal);">(M)</div>
   </div>
 
-  <div class="col">
-    <div class="col-header" style="background:var(--c-teal);">Post Implement (M)</div>
-    <div class="col-body">
-      <div class="card step-card" style="border-left-color:var(--r-dba);">
-        <div class="card-title">🗄️ DBA AI: Monitor DB Performance</div>
-        <div class="card-body">Slow query, deadlock, disk usage, connection pool</div>
-        <div class="card-tags"><span class="role role-dba">🗄️ DBA</span></div>
-      </div>
-      <div class="card" style="border-left: 3px solid var(--c-red);">
-        <div class="card-title" style="color:var(--c-red);">Hotfix → Fast Track (R10)</div>
-        <div class="card-body"><b>Step 1 (Arch) → Step 4 (Dev) → Step 5 (Sec)</b><br/>+ mandatory Follow-up Task ภายใน 1 sprint</div>
-        <div class="card-tags">
-          <span class="role role-arch">🏗️ 01 Arch</span>
-          <span class="role role-dev">💻 03 Dev</span>
-          <span class="role role-sec">🔐 Sec</span>
-        </div>
-      </div>
-      <div class="col-empty" style="padding:6px 0;">+ งานคน: Infra + Dev warranty monitoring · PM handover</div>
-    </div>
-  </div>
+  <div class="col dim"><div class="col-header" style="background:var(--c-teal);">Post Implement</div><div class="col-body"><div class="col-empty">งานคน<br/>Monitoring · Warranty<br/>Hotfix กลับเข้า Develop (Fast Track R10)</div></div></div>
 
   <div class="phase-sep">
     <div style="font-size:18px;">📊</div>
@@ -632,27 +582,7 @@
     <div class="sep-label" style="color:var(--c-blue);">(A)</div>
   </div>
 
-  <div class="col">
-    <div class="col-header" style="background:var(--c-blue);">Project Assessment (A)</div>
-    <div class="col-body">
-      <div class="card step-card" style="border-left-color:var(--r-arch);">
-        <div class="card-title">🏗️ Architect AI: Retrospective — Solution Quality</div>
-        <div class="card-body">Solution ที่ออกแบบถูกจริง? ต้องปรับ template?<br/>Feedback → pipeline improvement</div>
-        <div class="card-tags"><span class="role role-arch">🏗️ 01 Architect</span></div>
-      </div>
-      <div class="card step-card" style="border-left-color:var(--r-sec);">
-        <div class="card-title">🔐 Sec AI: Retrospective — Security Gaps</div>
-        <div class="card-body">Pre-check จับได้กี่ % · Code Review จับได้อีกเท่าไร · pattern ที่ซ้ำ</div>
-        <div class="card-tags"><span class="role role-sec">🔐 Sec</span></div>
-      </div>
-      <div class="card step-card" style="border-left-color:var(--r-dba);">
-        <div class="card-title">🗄️ DBA AI: Retrospective — DB Quality</div>
-        <div class="card-body">Migration issue · query perf ที่พบ post-deploy · schema design ที่ต้องปรับ</div>
-        <div class="card-tags"><span class="role role-dba">🗄️ DBA</span></div>
-      </div>
-      <div class="col-empty" style="padding:6px 0;">+ งานคน: PM Project Closure · Lessons Learned</div>
-    </div>
-  </div>
+  <div class="col dim"><div class="col-header" style="background:var(--c-blue);">Project Assessment</div><div class="col-body"><div class="col-empty">งานคน<br/>Retrospective · Project Closure<br/>Lessons Learned</div></div></div>
 
 </div><!-- end kanban -->
 
@@ -660,7 +590,7 @@
   Ai-Role Pipeline — Step 1-6 Framework Reference<br/>
   อ้างอิง: Role-Research.md (Step 1-6, R1-R12) · Role-Plan.md (7 Ai Roles)<br/>
   <b>Ai Roles ทั้ง 7:</b> 01 Solution Architect · 02 Task QA · 03 Developer · 04 Developer QC · Sec · DBA · Std Reviewer<br/>
-  <span style="color:var(--accent);">⚡ แกนหลัก = Develop column (Step 1-6) · บาง col ก่อน/หลังก็มี 🏗️Arch / 🗄️DBA / 🔐Sec ทำงาน</span>
+  <span style="color:var(--accent);">⚡ แกนหลัก = Develop (Step 1-6) · Pre-Develop บาง col มี 🏗️Arch / 🗄️DBA / 🔐Sec · UAT+ = งานคน</span>
 </footer>
 
 <script>
