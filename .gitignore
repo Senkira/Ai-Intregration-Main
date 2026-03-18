@@ -1,32 +1,8 @@
 # Exclude cloned source code repositories (they have their own git)
-02/OMNICHANNEL/
-02/OMNICHANNEL_API/
-02/OMNITRANSACTIONLOG_API/
-02/RLOP0001/
-02/RLOP0001_clone/
-02/RLOP0001_clone_2/
-02/RLSR061/
-02/RLSR061_clone/
-02/RLSR250/
-02/RLSR250_clone/
-02/RLSR251/
-02/RLSR251_clone/
-02/RLSR261/
-02/RLSR261_clone/
-02/RLSR267/
-02/RLSR267_clone/
-02/RLSR424/
-02/RLSR424_clone/
-02/RLSR45/
-02/RLSR45_clone/
-02/RLSR61/
-02/RLSR61_clone/
-02/RLSR97/
-02/RLSR97_clone/
-02/RLSRFEE/
-02/RLSRFEE_clone/
-02/test/
-02/test2/
+ClonedRepos/
+
+# Legacy paths (for backward compatibility with existing local clones)
+02/
 
 # Exclude ESTATEMENT_API source (has its own git repo)
 ESTATEMENT_API/
