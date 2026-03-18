@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/SmartBankStatementAPI/SmartBankStatementAPI.csproj" />
+  </Folder>
+  <Folder Name="/tests/" />
+  <Folder Name="/tests/UnitTest/">
+    <Project Path="tests/UnitTest/SmartBankStatementAPI.UnitTest.csproj" />
+  </Folder>
+</Solution>
